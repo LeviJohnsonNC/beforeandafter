@@ -22,8 +22,8 @@ export const UploadZone = () => {
       return;
     }
 
-    if (images.length + imageFiles.length > 20) {
-      toast.error('Maximum 20 images allowed');
+    if (images.length + imageFiles.length > 50) {
+      toast.error('Maximum 50 images allowed');
       return;
     }
 
@@ -117,7 +117,7 @@ export const UploadZone = () => {
         >
           <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
           <p className="text-lg font-medium mb-2">
-            Drop your job photos here (4–20)
+            Drop your job photos here (2–50)
           </p>
           <p className="text-sm text-muted-foreground mb-6">
             We'll detect the best before/after pair
