@@ -264,7 +264,7 @@ export const PreviewCanvas = () => {
     
     // Position centered horizontally, with margin from bottom
     const x = (canvasWidth - width) / 2;
-    const y = canvasHeight - height - 80;
+    const y = canvasHeight - height - 30;
     
     // Determine colors based on brand
     const bgColor = branding.dominantColor || '#FFFFFF';
