@@ -33,31 +33,45 @@ export const PreviewCanvas = () => {
 
     let beforeWidth: number;
     let afterWidth: number;
+    let beforeHeight: number;
+    let afterHeight: number;
+    let canvasHeight: number;
 
     if (layout === 'equal') {
+      // Both images same height, widths vary by aspect ratio
       beforeWidth = Math.round(targetHeight * beforeAspect);
       afterWidth = Math.round(targetHeight * afterAspect);
+      beforeHeight = targetHeight;
+      afterHeight = targetHeight;
+      canvasHeight = targetHeight;
     } else {
-      // For unequal layouts, use a base width budget
+      // For unequal layouts, preserve aspect ratios
       const baseWidth = 1200;
       const availableWidth = baseWidth - gutter;
       
       if (layout === 'before-larger') {
-        // 60% for before, 40% for after
-        beforeWidth = Math.round(availableWidth * 0.6);
-        afterWidth = Math.round(availableWidth * 0.4);
+        // 65% for before, 35% for after
+        beforeWidth = Math.round(availableWidth * 0.65);
+        afterWidth = Math.round(availableWidth * 0.35);
       } else {
-        // 40% for before, 60% for after
-        beforeWidth = Math.round(availableWidth * 0.4);
-        afterWidth = Math.round(availableWidth * 0.6);
+        // 35% for before, 65% for after
+        beforeWidth = Math.round(availableWidth * 0.35);
+        afterWidth = Math.round(availableWidth * 0.65);
       }
+      
+      // Calculate heights based on aspect ratios
+      beforeHeight = Math.round(beforeWidth / beforeAspect);
+      afterHeight = Math.round(afterWidth / afterAspect);
+      canvasHeight = Math.max(beforeHeight, afterHeight);
     }
 
     return {
       beforeWidth,
       afterWidth,
+      beforeHeight,
+      afterHeight,
       canvasWidth: beforeWidth + gutter + afterWidth,
-      canvasHeight: targetHeight,
+      canvasHeight,
       gutter,
     };
   };
@@ -74,7 +88,7 @@ export const PreviewCanvas = () => {
     const afterImg = await loadImage(afterUrl);
 
     // Calculate dimensions based on layout
-    const { beforeWidth, afterWidth, canvasWidth, canvasHeight, gutter } = 
+    const { beforeWidth, afterWidth, beforeHeight, afterHeight, canvasWidth, canvasHeight, gutter } = 
       calculateDimensions(beforeImg, afterImg, branding.layout);
     
     canvas.width = canvasWidth;
@@ -84,11 +98,15 @@ export const PreviewCanvas = () => {
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw before image
-    ctx.drawImage(beforeImg, 0, 0, beforeWidth, canvasHeight);
+    // Calculate vertical offsets to center images
+    const beforeY = (canvasHeight - beforeHeight) / 2;
+    const afterY = (canvasHeight - afterHeight) / 2;
 
-    // Draw after image
-    ctx.drawImage(afterImg, beforeWidth + gutter, 0, afterWidth, canvasHeight);
+    // Draw before image (centered vertically)
+    ctx.drawImage(beforeImg, 0, beforeY, beforeWidth, beforeHeight);
+
+    // Draw after image (centered vertically)
+    ctx.drawImage(afterImg, beforeWidth + gutter, afterY, afterWidth, afterHeight);
 
     // Draw labels if enabled
     if (branding.showLabels) {
