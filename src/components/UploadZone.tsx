@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, RotateCcw } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { UploadedImage } from '@/types';
 import { computeImageMetrics, normalizeMetrics } from '@/lib/imageMetrics';
@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { ImageGrid } from './ImageGrid';
 
 export const UploadZone = () => {
-  const { images, addImages, setProcessing } = useAppStore();
+  const { images, addImages, setProcessing, reset } = useAppStore();
   const [isDragging, setIsDragging] = useState(false);
 
   const processFiles = useCallback(async (files: File[]) => {
@@ -138,18 +138,33 @@ export const UploadZone = () => {
             <p className="text-sm text-muted-foreground">
               {images.length} image{images.length !== 1 ? 's' : ''} uploaded
             </p>
-            <Button variant="outline" size="sm" asChild>
-              <label className="cursor-pointer">
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                Add More
-              </label>
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  // Revoke object URLs to prevent memory leaks
+                  images.forEach(img => URL.revokeObjectURL(img.objectUrl));
+                  reset();
+                  toast.success('All photos cleared');
+                }}
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reset
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  Add More
+                </label>
+              </Button>
+            </div>
           </div>
           <ImageGrid />
         </div>
