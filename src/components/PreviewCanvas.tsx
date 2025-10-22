@@ -133,22 +133,47 @@ export const PreviewCanvas = () => {
   const drawLabel = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number) => {
     ctx.save();
     
-    // Measure text
-    ctx.font = 'bold 18px system-ui, -apple-system, sans-serif';
+    // Measure text with updated styling
+    ctx.font = 'bold 20px system-ui, -apple-system, sans-serif';
     const metrics = ctx.measureText(text);
-    const padding = 12;
+    const padding = 16;
     const width = metrics.width + padding * 2;
-    const height = 32;
+    const height = 36;
 
-    // Draw background
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+    // Draw subtle shadow
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 2;
+
+    // Draw background with high contrast
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
     ctx.roundRect(x, y, width, height, 8);
     ctx.fill();
 
-    // Draw text
-    ctx.fillStyle = '#ffffff';
+    // Reset shadow for border and text
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    // Draw subtle border
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.lineWidth = 1;
+    ctx.roundRect(x, y, width, height, 8);
+    ctx.stroke();
+
+    // Draw text with letter spacing
+    ctx.fillStyle = '#1a1a1a';
     ctx.textBaseline = 'middle';
-    ctx.fillText(text, x + padding, y + height / 2);
+    
+    // Apply letter spacing manually
+    const letters = text.split('');
+    const letterSpacing = 0.5;
+    let currentX = x + padding;
+    
+    letters.forEach((letter) => {
+      ctx.fillText(letter, currentX, y + height / 2);
+      currentX += ctx.measureText(letter).width + letterSpacing;
+    });
 
     ctx.restore();
   };
