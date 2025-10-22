@@ -162,7 +162,7 @@ export const PreviewCanvas = () => {
     ctx.stroke();
 
     // Draw text with letter spacing
-    ctx.fillStyle = '#1a1a1a';
+    ctx.fillStyle = '#000000';
     ctx.textBaseline = 'middle';
     
     // Apply letter spacing manually
