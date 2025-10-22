@@ -151,8 +151,9 @@ export const PreviewCanvas = () => {
     ctx.fill();
 
     // Reset shadow for border and text
-    ctx.shadowColor = 'transparent';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0)';
     ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
 
     // Draw subtle border
@@ -161,8 +162,15 @@ export const PreviewCanvas = () => {
     ctx.roundRect(x, y, width, height, 8);
     ctx.stroke();
 
+    // Ensure no shadow on text
+    ctx.shadowColor = 'rgba(0, 0, 0, 0)';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+
     // Draw text with letter spacing
     ctx.fillStyle = '#000000';
+    ctx.font = `900 30px Inter, system-ui, -apple-system, sans-serif`;
     ctx.textBaseline = 'middle';
     
     // Apply letter spacing manually
