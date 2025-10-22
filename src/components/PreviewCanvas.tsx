@@ -4,7 +4,6 @@ import { useAppStore } from '@/store/useAppStore';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
-import { LayoutControls } from './LayoutControls';
 
 export const PreviewCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -237,42 +236,38 @@ export const PreviewCanvas = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <LayoutControls />
-      
-      <Card className="p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold">Preview</h2>
-          <Button 
-            onClick={handleDownload} 
-            disabled={isGenerating}
-            className="gap-2"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Download className="w-4 h-4" />
-                Download PNG
-              </>
-            )}
-          </Button>
-        </div>
+    <Card className="p-8">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold">Preview</h2>
+        <Button 
+          onClick={handleDownload} 
+          disabled={isGenerating}
+          className="gap-2"
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <Download className="w-4 h-4" />
+              Download PNG
+            </>
+          )}
+        </Button>
+      </div>
 
-        <div className="rounded-xl overflow-hidden border border-border bg-muted shadow-lg">
-          <canvas 
-            ref={canvasRef}
-            className="w-full h-auto"
-          />
-        </div>
+      <div className="rounded-xl overflow-hidden border border-border bg-muted shadow-lg">
+        <canvas 
+          ref={canvasRef}
+          className="w-full h-auto"
+        />
+      </div>
 
-        <p className="text-center text-sm text-muted-foreground mt-4">
-          Looks good? Download PNG
-        </p>
-      </Card>
-    </div>
+      <p className="text-center text-sm text-muted-foreground mt-4">
+        Looks good? Download PNG
+      </p>
+    </Card>
   );
 };
