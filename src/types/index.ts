@@ -27,6 +27,8 @@ export type PairCandidate = {
   totalScore: number;          // 0..1
   confidenceTier: 'high' | 'medium' | 'low'; // based on scene matching
   rationale: string[];         // bullets for UI
+  aiVerified?: boolean;        // LLM confirmed scene match
+  aiReasoning?: string;        // LLM explanation
 };
 
 export type BrandingConfig = {

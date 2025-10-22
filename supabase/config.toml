@@ -1,0 +1,4 @@
+project_id = "vbslgopzwajhfkfhuojn"
+
+[functions.verify-scene-match]
+verify_jwt = false

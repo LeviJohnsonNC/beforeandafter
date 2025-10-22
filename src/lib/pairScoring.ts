@@ -1,5 +1,6 @@
 import { UploadedImage, PairCandidate } from '@/types';
 import { hammingDistance } from './phash';
+import { verifySceneMatch } from './aiVerification';
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -111,7 +112,7 @@ function computeRationale(
   return rationale;
 }
 
-export function scorePairs(images: UploadedImage[]): PairCandidate[] {
+export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate[]> {
   const candidates: PairCandidate[] = [];
   
   // Generate all possible pairs
@@ -227,8 +228,45 @@ export function scorePairs(images: UploadedImage[]): PairCandidate[] {
     }
   }
   
-  // Sort by score and return top 3
-  return candidates
+  // Sort by score
+  const sortedCandidates = candidates.sort((a, b) => b.totalScore - a.totalScore);
+  
+  // AI verification for uncertain pairs (medium confidence range)
+  const verifiedCandidates = await Promise.all(
+    sortedCandidates.slice(0, 3).map(async (candidate) => {
+      // Only verify medium confidence pairs (0.70-0.84)
+      if (candidate.confidenceTier === 'medium' && candidate.totalScore >= 0.65) {
+        const beforeImg = images.find(img => img.id === candidate.beforeId);
+        const afterImg = images.find(img => img.id === candidate.afterId);
+        
+        if (beforeImg && afterImg) {
+          console.log(`Verifying pair with AI (score: ${candidate.totalScore.toFixed(2)})...`);
+          const aiResult = await verifySceneMatch(beforeImg, afterImg);
+          
+          if (aiResult) {
+            if (aiResult.match && aiResult.confidence >= 70) {
+              // AI confirms match - boost score and upgrade confidence
+              candidate.totalScore = Math.min(1, candidate.totalScore + 0.15);
+              candidate.confidenceTier = 'high';
+              candidate.aiVerified = true;
+              candidate.aiReasoning = aiResult.reasoning;
+              console.log('✓ AI confirmed scene match');
+            } else if (!aiResult.match) {
+              // AI rejects match - set score to 0 to filter out
+              candidate.totalScore = 0;
+              console.log('✗ AI rejected scene match:', aiResult.reasoning);
+            }
+          }
+        }
+      }
+      
+      return candidate;
+    })
+  );
+  
+  // Filter out rejected pairs and return top 3
+  return verifiedCandidates
+    .filter(c => c.totalScore > 0)
     .sort((a, b) => b.totalScore - a.totalScore)
     .slice(0, 3);
 }

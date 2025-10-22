@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Info, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { scorePairs } from '@/lib/pairScoring';
@@ -6,6 +6,7 @@ import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
 import { Alert, AlertDescription } from './ui/alert';
+import { Badge } from './ui/badge';
 import {
   Tooltip,
   TooltipContent,
@@ -15,17 +16,24 @@ import {
 
 export const PairList = () => {
   const { images, candidates, setCandidates, selectedPair, setSelectedPair } = useAppStore();
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   useEffect(() => {
-    if (images.length >= 2 && images.every(img => img.metrics)) {
-      const pairs = scorePairs(images);
-      setCandidates(pairs);
-      
-      // Auto-select best pair if confidence is high
-      if (pairs.length > 0 && pairs[0].confidenceTier === 'high') {
-        setSelectedPair(pairs[0]);
+    const analyzePairs = async () => {
+      if (images.length >= 2 && images.every(img => img.metrics)) {
+        setIsAnalyzing(true);
+        const pairs = await scorePairs(images);
+        setCandidates(pairs);
+        setIsAnalyzing(false);
+        
+        // Auto-select best pair if confidence is high
+        if (pairs.length > 0 && pairs[0].confidenceTier === 'high') {
+          setSelectedPair(pairs[0]);
+        }
       }
-    }
+    };
+    
+    analyzePairs();
   }, [images, setCandidates, setSelectedPair]);
 
   if (images.length < 2 || images.some(img => !img.metrics)) {
@@ -51,9 +59,8 @@ export const PairList = () => {
               </TooltipTrigger>
               <TooltipContent>
                 <p className="text-sm max-w-xs">
-                  We score pairs based on scene matching (50%: structure, color, spatial layout), 
-                  brightness improvement (15%), sharpness (10%), clutter reduction (10%), 
-                  chronology (15%), and privacy (-10%). Minimum 70% scene match required.
+                  Pairs are scored using perceptual hashing, color histograms, and spatial analysis.
+                  Uncertain pairs are verified by AI vision to ensure they show the same location.
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -61,7 +68,14 @@ export const PairList = () => {
         </div>
       </div>
 
-      {hasLowConfidence && (
+      {isAnalyzing && (
+        <div className="flex items-center gap-2 text-muted-foreground mb-4">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+          <span className="text-sm">Analyzing scenes with AI...</span>
+        </div>
+      )}
+
+      {hasLowConfidence && !isAnalyzing && (
         <Alert className="mb-6 border-warning/50 bg-warning/10">
           <AlertTriangle className="w-4 h-4 mr-2" />
           <AlertDescription className="text-sm">
@@ -70,7 +84,7 @@ export const PairList = () => {
         </Alert>
       )}
 
-      {candidates.length === 0 ? (
+      {!isAnalyzing && candidates.length === 0 ? (
         <p className="text-center text-muted-foreground py-8">
           No suitable pairs found. Try uploading more similar images.
         </p>
@@ -125,19 +139,24 @@ export const PairList = () => {
                   {/* Details */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium">
                           Pair {index + 1}
                         </span>
                         {pair.confidenceTier === 'high' && (
-                          <span className="px-2 py-0.5 bg-green-500/10 text-green-700 dark:text-green-400 text-xs rounded-full border border-green-500/20">
+                          <Badge variant="default" className="bg-green-600">
                             High
-                          </span>
+                          </Badge>
                         )}
                         {pair.confidenceTier === 'medium' && (
-                          <span className="px-2 py-0.5 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-xs rounded-full border border-yellow-500/20">
+                          <Badge variant="secondary">
                             Medium
-                          </span>
+                          </Badge>
+                        )}
+                        {pair.aiVerified && (
+                          <Badge variant="default" className="bg-blue-600">
+                            AI Verified ✓
+                          </Badge>
                         )}
                       </div>
                       {isSelected && (
@@ -167,6 +186,12 @@ export const PairList = () => {
                           <span>{reason}</span>
                         </li>
                       ))}
+                      {pair.aiReasoning && (
+                        <li className="text-xs text-blue-700 dark:text-blue-400 flex items-start mt-2">
+                          <span className="mr-2">🤖</span>
+                          <span>{pair.aiReasoning}</span>
+                        </li>
+                      )}
                     </ul>
                   </div>
                 </div>
