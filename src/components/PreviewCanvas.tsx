@@ -76,6 +76,27 @@ export const PreviewCanvas = () => {
     };
   };
 
+  // Helper function to calculate contrast color for text
+  const getContrastColor = (hexColor: string): string => {
+    // Remove # if present
+    const hex = hexColor.replace('#', '');
+    
+    // Convert to RGB
+    const r = parseInt(hex.substring(0, 2), 16) / 255;
+    const g = parseInt(hex.substring(2, 4), 16) / 255;
+    const b = parseInt(hex.substring(4, 6), 16) / 255;
+    
+    // Calculate relative luminance (WCAG standard)
+    const luminance = (c: number) => {
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    };
+    
+    const L = 0.2126 * luminance(r) + 0.7152 * luminance(g) + 0.0722 * luminance(b);
+    
+    // Return white for dark colors, black for light colors
+    return L > 0.5 ? '#000000' : '#FFFFFF';
+  };
+
   const renderCanvas = async (beforeUrl: string, afterUrl: string) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -110,8 +131,8 @@ export const PreviewCanvas = () => {
 
     // Draw labels if enabled
     if (branding.showLabels) {
-      drawLabel(ctx, 'Before', 20, 30);
-      drawLabel(ctx, 'After', beforeWidth + gutter + 20, 30);
+      drawLabel(ctx, 'Before', 20, 30, branding.dominantColor);
+      drawLabel(ctx, 'After', beforeWidth + gutter + 20, 30, branding.dominantColor);
     }
 
     // Draw watermark if logo exists
@@ -130,58 +151,53 @@ export const PreviewCanvas = () => {
     }
   };
 
-  const drawLabel = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number) => {
+  const drawLabel = (
+    ctx: CanvasRenderingContext2D, 
+    text: string, 
+    x: number, 
+    y: number, 
+    brandColor?: string
+  ) => {
     ctx.save();
     
-    // Measure text with updated styling
-    ctx.font = 'bold 30px system-ui, -apple-system, sans-serif';
-    const metrics = ctx.measureText(text);
-    const padding = 24;
-    const width = metrics.width + padding * 2;
-    const height = 54;
-
-    // Draw subtle shadow
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetY = 2;
-
-    // Draw background with high contrast
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-    ctx.roundRect(x, y, width, height, 8);
-    ctx.fill();
-
-    // Reset shadow for border and text
-    ctx.shadowColor = 'rgba(0, 0, 0, 0)';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-
-    // Draw subtle border
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
-    ctx.lineWidth = 1;
-    ctx.roundRect(x, y, width, height, 8);
-    ctx.stroke();
-
-    // Ensure no shadow on text
-    ctx.shadowColor = 'rgba(0, 0, 0, 0)';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-
-    // Draw text with letter spacing
-    ctx.fillStyle = '#000000';
-    ctx.font = `900 30px Inter, system-ui, -apple-system, sans-serif`;
+    // Set all canvas properties explicitly
+    ctx.font = '900 30px Inter, system-ui, -apple-system, sans-serif';
     ctx.textBaseline = 'middle';
     
-    // Apply letter spacing manually
-    const letters = text.split('');
-    const letterSpacing = 0.5;
-    let currentX = x + padding;
-    
-    letters.forEach((letter) => {
-      ctx.fillText(letter, currentX, y + height / 2);
-      currentX += ctx.measureText(letter).width + letterSpacing;
-    });
+    // Measure text for chip dimensions
+    const metrics = ctx.measureText(text);
+    const paddingX = 24;
+    const paddingY = 15;
+    const width = metrics.width + paddingX * 2;
+    const height = 60;
+    const borderRadius = 12;
+
+    // Determine colors based on brand
+    const bgColor = brandColor || '#FFFFFF';
+    const textColor = brandColor ? getContrastColor(brandColor) : '#000000';
+    const borderColor = brandColor ? 'rgba(0, 0, 0, 0.15)' : 'rgba(0, 0, 0, 0.1)';
+
+    // Draw background (fresh context, no shadows)
+    ctx.fillStyle = bgColor;
+    ctx.beginPath();
+    ctx.roundRect(x, y, width, height, borderRadius);
+    ctx.fill();
+
+    // Draw border (fresh path)
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(x, y, width, height, borderRadius);
+    ctx.stroke();
+
+    // Draw text (completely fresh state, explicit properties)
+    ctx.fillStyle = textColor;
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.textAlign = 'left';
+    ctx.fillText(text, x + paddingX, y + height / 2);
 
     ctx.restore();
   };
