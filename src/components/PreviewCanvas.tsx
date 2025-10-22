@@ -119,20 +119,51 @@ export const PreviewCanvas = () => {
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Calculate vertical offsets to center images
-    const beforeY = (canvasHeight - beforeHeight) / 2;
-    const afterY = (canvasHeight - afterHeight) / 2;
+    // For unequal layouts, use crop-to-fill approach to eliminate whitespace
+    if (branding.layout !== 'equal') {
+      // Draw before image
+      if (beforeHeight < canvasHeight) {
+        // Scale up and crop to fill height
+        const scaleToFill = canvasHeight / beforeHeight;
+        const scaledWidth = beforeWidth * scaleToFill;
+        const cropX = (scaledWidth - beforeWidth) / 2;
+        ctx.drawImage(
+          beforeImg, 
+          cropX / scaleToFill, 0, // Source x, y
+          beforeImg.width - (cropX * 2 / scaleToFill), beforeImg.height, // Source width, height
+          0, 0, // Dest x, y
+          beforeWidth, canvasHeight // Dest width, height
+        );
+      } else {
+        ctx.drawImage(beforeImg, 0, 0, beforeWidth, beforeHeight);
+      }
 
-    // Draw before image (centered vertically)
-    ctx.drawImage(beforeImg, 0, beforeY, beforeWidth, beforeHeight);
-
-    // Draw after image (centered vertically)
-    ctx.drawImage(afterImg, beforeWidth + gutter, afterY, afterWidth, afterHeight);
+      // Draw after image
+      if (afterHeight < canvasHeight) {
+        // Scale up and crop to fill height
+        const scaleToFill = canvasHeight / afterHeight;
+        const scaledWidth = afterWidth * scaleToFill;
+        const cropX = (scaledWidth - afterWidth) / 2;
+        ctx.drawImage(
+          afterImg, 
+          cropX / scaleToFill, 0, // Source x, y
+          afterImg.width - (cropX * 2 / scaleToFill), afterImg.height, // Source width, height
+          beforeWidth + gutter, 0, // Dest x, y
+          afterWidth, canvasHeight // Dest width, height
+        );
+      } else {
+        ctx.drawImage(afterImg, beforeWidth + gutter, 0, afterWidth, afterHeight);
+      }
+    } else {
+      // Equal layout - no cropping needed
+      ctx.drawImage(beforeImg, 0, 0, beforeWidth, beforeHeight);
+      ctx.drawImage(afterImg, beforeWidth + gutter, 0, afterWidth, afterHeight);
+    }
 
     // Draw labels if enabled
     if (branding.showLabels) {
-      drawLabel(ctx, 'Before', 20, 30, branding.dominantColor);
-      drawLabel(ctx, 'After', beforeWidth + gutter + 20, 30, branding.dominantColor);
+      drawLabel(ctx, 'Before', 20, 30, canvasHeight, branding.dominantColor);
+      drawLabel(ctx, 'After', beforeWidth + gutter + 20, 30, canvasHeight, branding.dominantColor);
     }
 
     // Draw watermark if logo exists
@@ -156,21 +187,26 @@ export const PreviewCanvas = () => {
     text: string, 
     x: number, 
     y: number, 
+    canvasHeight: number,
     brandColor?: string
   ) => {
     ctx.save();
     
-    // Set all canvas properties explicitly
-    ctx.font = '900 30px Inter, system-ui, -apple-system, sans-serif';
+    // Scale factor based on canvas height (600 is base target)
+    const scaleFactor = canvasHeight / 600;
+    
+    // Set all canvas properties explicitly with scaling
+    const fontSize = Math.round(30 * scaleFactor);
+    ctx.font = `900 ${fontSize}px Inter, system-ui, -apple-system, sans-serif`;
     ctx.textBaseline = 'middle';
     
     // Measure text for chip dimensions
     const metrics = ctx.measureText(text);
-    const paddingX = 24;
-    const paddingY = 15;
+    const paddingX = Math.round(24 * scaleFactor);
+    const paddingY = Math.round(15 * scaleFactor);
     const width = metrics.width + paddingX * 2;
-    const height = 60;
-    const borderRadius = 12;
+    const height = Math.round(60 * scaleFactor);
+    const borderRadius = Math.round(12 * scaleFactor);
 
     // Determine colors based on brand
     const bgColor = brandColor || '#FFFFFF';
@@ -185,7 +221,7 @@ export const PreviewCanvas = () => {
 
     // Draw border (fresh path)
     ctx.strokeStyle = borderColor;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = Math.round(2 * scaleFactor);
     ctx.beginPath();
     ctx.roundRect(x, y, width, height, borderRadius);
     ctx.stroke();
@@ -250,21 +286,25 @@ export const PreviewCanvas = () => {
   ) => {
     ctx.save();
     
-    // Set font for measuring
-    ctx.font = '600 36px Inter, system-ui, -apple-system, sans-serif';
+    // Scale factor based on canvas height (600 is base target)
+    const scaleFactor = canvasHeight / 600;
+    
+    // Set font for measuring with scaling
+    const fontSize = Math.round(36 * scaleFactor);
+    ctx.font = `600 ${fontSize}px Inter, system-ui, -apple-system, sans-serif`;
     ctx.textBaseline = 'middle';
     
     // Measure text for chip dimensions
     const metrics = ctx.measureText(caption);
-    const paddingX = 32;
-    const paddingY = 20;
+    const paddingX = Math.round(32 * scaleFactor);
+    const paddingY = Math.round(20 * scaleFactor);
     const width = metrics.width + paddingX * 2;
-    const height = 76;
-    const borderRadius = 16;
+    const height = Math.round(76 * scaleFactor);
+    const borderRadius = Math.round(16 * scaleFactor);
     
     // Position centered horizontally, with margin from bottom
     const x = (canvasWidth - width) / 2;
-    const y = canvasHeight - height - 30;
+    const y = canvasHeight - height - Math.round(30 * scaleFactor);
     
     // Determine colors based on brand
     const bgColor = branding.dominantColor || '#FFFFFF';
@@ -279,7 +319,7 @@ export const PreviewCanvas = () => {
     
     // Draw border
     ctx.strokeStyle = borderColor;
-    ctx.lineWidth = 3;
+    ctx.lineWidth = Math.round(3 * scaleFactor);
     ctx.beginPath();
     ctx.roundRect(x, y, width, height, borderRadius);
     ctx.stroke();
