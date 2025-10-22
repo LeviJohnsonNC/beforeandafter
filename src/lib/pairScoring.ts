@@ -133,8 +133,8 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
         0.30 * colorSimilarity +
         0.10 * spatialSimilarity;
       
-      // Skip pairs with low combined scene similarity (raised threshold to 0.70)
-      if (combinedSceneScore < 0.70) continue;
+      // Skip pairs with low combined scene similarity (raised threshold to 0.75)
+      if (combinedSceneScore < 0.75) continue;
       
       const timestampDelta = getTimestampDelta(img1, img2);
       
@@ -231,31 +231,31 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
   // Sort by score
   const sortedCandidates = candidates.sort((a, b) => b.totalScore - a.totalScore);
   
-  // AI verification for uncertain pairs (medium confidence range)
+  // MANDATORY AI verification for ALL top candidates (not just medium confidence)
   const verifiedCandidates = await Promise.all(
-    sortedCandidates.slice(0, 3).map(async (candidate) => {
-      // Only verify medium confidence pairs (0.70-0.84)
-      if (candidate.confidenceTier === 'medium' && candidate.totalScore >= 0.65) {
-        const beforeImg = images.find(img => img.id === candidate.beforeId);
-        const afterImg = images.find(img => img.id === candidate.afterId);
+    sortedCandidates.slice(0, 6).map(async (candidate) => {
+      // Verify ALL top 6 candidates regardless of confidence tier
+      const beforeImg = images.find(img => img.id === candidate.beforeId);
+      const afterImg = images.find(img => img.id === candidate.afterId);
+      
+      if (beforeImg && afterImg) {
+        console.log(`🤖 Mandatory AI verification (score: ${candidate.totalScore.toFixed(2)}, tier: ${candidate.confidenceTier})...`);
+        const aiResult = await verifySceneMatch(beforeImg, afterImg);
         
-        if (beforeImg && afterImg) {
-          console.log(`Verifying pair with AI (score: ${candidate.totalScore.toFixed(2)})...`);
-          const aiResult = await verifySceneMatch(beforeImg, afterImg);
+        if (aiResult) {
+          candidate.aiVerified = aiResult.match;
+          candidate.aiReasoning = aiResult.reasoning;
           
-          if (aiResult) {
-            if (aiResult.match && aiResult.confidence >= 70) {
-              // AI confirms match - boost score and upgrade confidence
-              candidate.totalScore = Math.min(1, candidate.totalScore + 0.15);
-              candidate.confidenceTier = 'high';
-              candidate.aiVerified = true;
-              candidate.aiReasoning = aiResult.reasoning;
-              console.log('✓ AI confirmed scene match');
-            } else if (!aiResult.match) {
-              // AI rejects match - set score to 0 to filter out
-              candidate.totalScore = 0;
-              console.log('✗ AI rejected scene match:', aiResult.reasoning);
-            }
+          if (aiResult.match && aiResult.confidence >= 80) {
+            // AI confirms match with high confidence (raised from 70 to 80)
+            const aiBoost = (aiResult.confidence / 100) * 0.15;
+            candidate.totalScore = Math.min(1, candidate.totalScore + aiBoost);
+            candidate.confidenceTier = 'high';
+            console.log(`✅ AI confirmed match (confidence: ${aiResult.confidence}%), upgraded to high`);
+          } else if (!aiResult.match || aiResult.confidence < 80) {
+            // AI rejected or low confidence - filter out completely
+            candidate.totalScore = 0;
+            console.log(`❌ AI rejected (confidence: ${aiResult.confidence}%): ${aiResult.reasoning}`);
           }
         }
       }

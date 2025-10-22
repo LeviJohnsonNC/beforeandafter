@@ -42,14 +42,14 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are an expert at analyzing whether two photos show the exact same physical location/room. Focus on: room layout, wall positions, windows, doors, permanent fixtures (cabinets, countertops), ceiling features. Ignore: furniture placement, clutter, lighting, time of day.'
+            content: 'You are an expert at analyzing whether two photos show the exact same physical location/room. Focus on: room layout, wall positions, windows, doors, permanent fixtures. CRITICAL: Pay special attention to fixture TYPE - a sink is NOT the same as a bathtub, a toilet is NOT the same as a shower, even if both are white porcelain. Compare: drain placement, faucet configuration, fixture shape, tile patterns, wall corners, surrounding fixtures. Ignore: furniture placement, clutter, lighting, cleanliness, time of day.'
           },
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: 'Are these two photos of the EXACT same physical room/location? Answer with a JSON object containing: {"match": true/false, "confidence": 0-100, "reasoning": "brief explanation focusing on structural elements"}. Be strict - only return true if you are confident they show the same space.'
+                text: 'Are these two photos of the EXACT same physical room/location AND same fixture type? Answer with a JSON object containing: {"match": true/false, "confidence": 0-100, "reasoning": "brief explanation focusing on: 1) fixture type match (sink vs tub, toilet vs shower), 2) spatial layout (tile patterns, corners, wall features), 3) fixture-specific features (drain position, faucet type, fixture shape)"}. Be VERY strict - a clean sink is NOT the same as a dirty bathtub. Only return true if you are highly confident they show the exact same fixture in the same space.'
               },
               {
                 type: 'image_url',
