@@ -251,20 +251,20 @@ export const PreviewCanvas = () => {
     ctx.save();
     
     // Set font for measuring
-    ctx.font = '600 18px Inter, system-ui, -apple-system, sans-serif';
+    ctx.font = '600 36px Inter, system-ui, -apple-system, sans-serif';
     ctx.textBaseline = 'middle';
     
     // Measure text for chip dimensions
     const metrics = ctx.measureText(caption);
-    const paddingX = 16;
-    const paddingY = 10;
+    const paddingX = 32;
+    const paddingY = 20;
     const width = metrics.width + paddingX * 2;
-    const height = 38;
-    const borderRadius = 8;
+    const height = 76;
+    const borderRadius = 16;
     
     // Position centered horizontally, with margin from bottom
     const x = (canvasWidth - width) / 2;
-    const y = canvasHeight - height - 40;
+    const y = canvasHeight - height - 80;
     
     // Determine colors based on brand
     const bgColor = branding.dominantColor || '#FFFFFF';
@@ -279,7 +279,7 @@ export const PreviewCanvas = () => {
     
     // Draw border
     ctx.strokeStyle = borderColor;
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.roundRect(x, y, width, height, borderRadius);
     ctx.stroke();
