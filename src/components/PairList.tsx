@@ -59,8 +59,7 @@ export const PairList = () => {
               </TooltipTrigger>
               <TooltipContent>
                 <p className="text-sm max-w-xs">
-                  Pairs are scored using perceptual hashing, color histograms, and spatial analysis.
-                  Uncertain pairs are verified by AI vision to ensure they show the same location.
+                  Pairs are identified using a multi-stage computer vision pipeline: (1) 256-bit perceptual hashing with DCT for scene matching, (2) HSV histogram analysis across 162 color bins, and (3) spatial analysis using brightness and entropy metrics. The algorithm weights structural similarity (60%), color (30%), and spatial features (10%). Quality assessment uses Laplacian edge detection for sharpness and ITU-R BT.601 for luminance. High-scoring candidates are verified by Google's Gemini 2.5 Flash vision model, with a three-tier confidence system (80%+ high, 70-79% medium, &lt;70% rejected).
                 </p>
               </TooltipContent>
             </Tooltip>
