@@ -8,9 +8,14 @@ export const Topbar = () => {
           <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm">
             <img src={logo} alt="Before/After Logo" className="w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
-            Before/After
-          </h1>
+          <div>
+            <h1 className="text-2xl font-bold text-white tracking-tight">
+              Before / After
+            </h1>
+            <p className="text-sm text-white/80 mt-0.5">
+              Turn every job into a story worth showing.
+            </p>
+          </div>
         </div>
       </div>
     </header>
