@@ -133,27 +133,52 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
         0.30 * colorSimilarity +
         0.10 * spatialSimilarity;
       
-      // Skip pairs with low combined scene similarity (lowered to 0.72 for more candidates)
-      if (combinedSceneScore < 0.72) continue;
+      // Skip pairs with low combined scene similarity (lowered to 0.65 for more candidates)
+      if (combinedSceneScore < 0.65) continue;
       
       const timestampDelta = getTimestampDelta(img1, img2);
       
       // Determine before/after based on timestamp or brightness
       let beforeImg = img1;
       let afterImg = img2;
+      let orderingMethod = 'default';
+      
+      console.log(`\n📊 Ordering pair: img1(${img1.id.slice(0,8)}) vs img2(${img2.id.slice(0,8)})`);
+      console.log(`  img1 brightness: ${img1.metrics.brightness.toFixed(3)}, timestamp: ${img1.exif?.takenAt || 'none'}`);
+      console.log(`  img2 brightness: ${img2.metrics.brightness.toFixed(3)}, timestamp: ${img2.exif?.takenAt || 'none'}`);
       
       if (timestampDelta !== undefined) {
-        if (timestampDelta < 0) {
+        // Use timestamp if available (positive delta = img2 is later)
+        if (timestampDelta > 0) {
+          // img2 is later, so img1 = before, img2 = after
+          beforeImg = img1;
+          afterImg = img2;
+          orderingMethod = 'timestamp (img2 later)';
+        } else {
+          // img1 is later, so img2 = before, img1 = after
           beforeImg = img2;
           afterImg = img1;
+          orderingMethod = 'timestamp (img1 later)';
         }
+        console.log(`  timestampDelta: ${timestampDelta.toFixed(0)}s, method: ${orderingMethod}`);
       } else {
-        // If no timestamp, assume darker is before
-        if (img2.metrics.brightness < img1.metrics.brightness) {
+        // No timestamp - use brightness: BRIGHTER = AFTER (cleaner)
+        if (img1.metrics.brightness > img2.metrics.brightness) {
+          // img1 is brighter = after, img2 is darker = before
           beforeImg = img2;
           afterImg = img1;
+          orderingMethod = 'brightness (img1 brighter)';
+        } else {
+          // img2 is brighter = after, img1 is darker = before
+          beforeImg = img1;
+          afterImg = img2;
+          orderingMethod = 'brightness (img2 brighter)';
         }
+        console.log(`  No timestamp, using brightness. Method: ${orderingMethod}`);
       }
+      
+      console.log(`  ✅ Result: before=${beforeImg.id.slice(0,8)} (${beforeImg.metrics.brightness.toFixed(3)}), after=${afterImg.id.slice(0,8)} (${afterImg.metrics.brightness.toFixed(3)})`);
+      console.log(`  Ordering method: ${orderingMethod}`);
       
       const brightnessIncrease = clamp(
         afterImg.metrics.brightness - beforeImg.metrics.brightness,
