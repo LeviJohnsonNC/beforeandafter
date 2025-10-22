@@ -133,8 +133,8 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
         0.30 * colorSimilarity +
         0.10 * spatialSimilarity;
       
-      // Skip pairs with low combined scene similarity (raised threshold to 0.75)
-      if (combinedSceneScore < 0.75) continue;
+      // Skip pairs with low combined scene similarity (lowered to 0.72 for more candidates)
+      if (combinedSceneScore < 0.72) continue;
       
       const timestampDelta = getTimestampDelta(img1, img2);
       
@@ -239,24 +239,30 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
       const afterImg = images.find(img => img.id === candidate.afterId);
       
       if (beforeImg && afterImg) {
-        console.log(`🤖 Mandatory AI verification (score: ${candidate.totalScore.toFixed(2)}, tier: ${candidate.confidenceTier})...`);
+        console.log(`🤖 Mandatory AI verification for pair ${sortedCandidates.indexOf(candidate) + 1}/6 (score: ${candidate.totalScore.toFixed(2)}, tier: ${candidate.confidenceTier})...`);
         const aiResult = await verifySceneMatch(beforeImg, afterImg);
         
         if (aiResult) {
           candidate.aiVerified = aiResult.match;
           candidate.aiReasoning = aiResult.reasoning;
           
+          // Three-tier AI scoring system
           if (aiResult.match && aiResult.confidence >= 80) {
-            // AI confirms match with high confidence (raised from 70 to 80)
+            // Tier 1: High confidence (80-100%) - boost score and upgrade to high
             const aiBoost = (aiResult.confidence / 100) * 0.15;
             candidate.totalScore = Math.min(1, candidate.totalScore + aiBoost);
             candidate.confidenceTier = 'high';
-            console.log(`✅ AI confirmed match (confidence: ${aiResult.confidence}%), upgraded to high`);
-          } else if (!aiResult.match || aiResult.confidence < 80) {
-            // AI rejected or low confidence - filter out completely
+            console.log(`✅ Tier 1: AI confirmed (${aiResult.confidence}%) - boosted score to ${candidate.totalScore.toFixed(2)}, upgraded to HIGH`);
+          } else if (aiResult.match && aiResult.confidence >= 70) {
+            // Tier 2: Medium confidence (70-79%) - keep original score and tier
+            console.log(`✅ Tier 2: AI confirmed (${aiResult.confidence}%) - kept original score ${candidate.totalScore.toFixed(2)}, tier: ${candidate.confidenceTier}`);
+          } else {
+            // Tier 3: Low confidence (<70%) or no match - reject completely
             candidate.totalScore = 0;
-            console.log(`❌ AI rejected (confidence: ${aiResult.confidence}%): ${aiResult.reasoning}`);
+            console.log(`❌ Tier 3: AI rejected (${aiResult.confidence}%) - ${aiResult.reasoning}`);
           }
+        } else {
+          console.log(`⚠️ AI verification failed for pair - keeping original score`);
         }
       }
       
