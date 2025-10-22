@@ -29,6 +29,7 @@ export type PairCandidate = {
   rationale: string[];         // bullets for UI
   aiVerified?: boolean;        // LLM confirmed scene match
   aiReasoning?: string;        // LLM explanation
+  image1IsBefore?: boolean;    // AI determined order (true = image1 is before)
 };
 
 export type BrandingConfig = {

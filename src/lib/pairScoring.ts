@@ -316,6 +316,23 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
           console.log(`    AI Result: ${aiResult.match ? '✅ MATCH' : '❌ NO MATCH'} (confidence: ${aiResult.confidence}%)`);
           console.log(`    Reasoning: ${aiResult.reasoning}`);
           
+          // Use AI's determination of before/after order
+          if (aiResult.match && aiResult.image1IsBefore !== undefined) {
+            // beforeImg was passed as image1, so if AI says image1 is NOT before, swap them
+            if (!aiResult.image1IsBefore) {
+              console.log(`    🔄 AI says order is REVERSED, swapping: "${beforeImg.file.name}" ↔ "${afterImg.file.name}"`);
+              const tempId = candidate.beforeId;
+              candidate.beforeId = candidate.afterId;
+              candidate.afterId = tempId;
+              // Recalculate improvement metrics with swapped order
+              candidate.brightnessIncrease = -candidate.brightnessIncrease;
+              candidate.sharpnessIncrease = -candidate.sharpnessIncrease;
+              candidate.entropyDrop = -candidate.entropyDrop;
+            } else {
+              console.log(`    ✅ AI confirms order is CORRECT`);
+            }
+          }
+          
           // Three-tier AI scoring system
           if (aiResult.match && aiResult.confidence >= 80) {
             // Tier 1: High confidence (80-100%) - boost score and upgrade to high

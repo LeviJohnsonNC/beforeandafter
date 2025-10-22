@@ -12,7 +12,7 @@ async function imageToBase64(file: File): Promise<string> {
 export async function verifySceneMatch(
   img1: UploadedImage,
   img2: UploadedImage
-): Promise<{ match: boolean; confidence: number; reasoning: string } | null> {
+): Promise<{ match: boolean; confidence: number; reasoning: string; image1IsBefore?: boolean } | null> {
   try {
     const image1Base64 = await imageToBase64(img1.file);
     const image2Base64 = await imageToBase64(img2.file);

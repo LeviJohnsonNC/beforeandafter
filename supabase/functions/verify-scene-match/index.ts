@@ -42,22 +42,30 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are an expert at analyzing whether two photos show the exact same physical location/room. Focus on: room layout, wall positions, windows, doors, permanent fixtures. CRITICAL: Pay special attention to fixture TYPE - a sink is NOT the same as a bathtub, a toilet is NOT the same as a shower, even if both are white porcelain. Compare: drain placement, faucet configuration, fixture shape, tile patterns, wall corners, surrounding fixtures. Ignore: furniture placement, clutter, lighting, cleanliness, time of day.'
+            content: 'You are an expert at analyzing before/after photos to determine scene matching and proper ordering. Your task: Compare two images and determine: 1) Whether they depict the SAME physical location (same room/space/area). 2) Which image is the "BEFORE" state (typically dirtier, messier, or in need of work). 3) Which image is the "AFTER" state (typically cleaner, tidier, or shows completed work). Look for: Room layout, fixture types, spatial characteristics, wall features, permanent fixtures (for scene matching). Cleanliness, clutter, dust, stains, organization level (for before/after ordering). Work completion signs: paint, repairs, cleaning, organization. Respond with valid JSON only: {"match": true/false, "confidence": 0-100, "reasoning": "brief explanation of key features", "image1IsBefore": true/false}. match: TRUE if same physical location. image1IsBefore: TRUE if image1 is the before state, FALSE if image1 is the after state. Only provide image1IsBefore if match is true.'
           },
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: 'Are these two photos of the EXACT same physical room/location AND same fixture type? Answer with a JSON object containing: {"match": true/false, "confidence": 0-100, "reasoning": "brief explanation focusing on: 1) fixture type match (sink vs tub, toilet vs shower), 2) spatial layout (tile patterns, corners, wall features), 3) fixture-specific features (drain position, faucet type, fixture shape)"}. Be VERY strict - a clean sink is NOT the same as a dirty bathtub. Only return true if you are highly confident they show the exact same fixture in the same space.'
+                text: 'Image 1:'
               },
               {
                 type: 'image_url',
                 image_url: { url: image1Base64 }
               },
               {
+                type: 'text',
+                text: 'Image 2:'
+              },
+              {
                 type: 'image_url',
                 image_url: { url: image2Base64 }
+              },
+              {
+                type: 'text',
+                text: 'Are these the same location? If yes, which image is BEFORE and which is AFTER?'
               }
             ]
           }
