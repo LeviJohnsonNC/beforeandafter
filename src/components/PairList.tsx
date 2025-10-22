@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Info, CheckCircle2 } from 'lucide-react';
+import { Info, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { scorePairs } from '@/lib/pairScoring';
 import { Card } from './ui/card';
@@ -22,7 +22,7 @@ export const PairList = () => {
       setCandidates(pairs);
       
       // Auto-select best pair if confidence is high
-      if (pairs.length > 0 && pairs[0].sceneSimilarity >= 0.75) {
+      if (pairs.length > 0 && pairs[0].confidenceTier === 'high') {
         setSelectedPair(pairs[0]);
       }
     }
@@ -35,7 +35,7 @@ export const PairList = () => {
   const getBeforeImage = (beforeId: string) => images.find(img => img.id === beforeId);
   const getAfterImage = (afterId: string) => images.find(img => img.id === afterId);
 
-  const hasLowConfidence = candidates.length > 0 && candidates[0].sceneSimilarity < 0.75;
+  const hasLowConfidence = candidates.length > 0 && candidates[0].confidenceTier === 'medium';
 
   return (
     <Card className="p-8">
@@ -51,8 +51,9 @@ export const PairList = () => {
               </TooltipTrigger>
               <TooltipContent>
                 <p className="text-sm max-w-xs">
-                  We score pairs based on scene similarity (30%), brightness improvement (20%),
-                  sharpness (10%), clutter reduction (10%), chronology (15%), and privacy (-10%).
+                  We score pairs based on scene matching (50%: structure, color, spatial layout), 
+                  brightness improvement (15%), sharpness (10%), clutter reduction (10%), 
+                  chronology (15%), and privacy (-10%). Minimum 70% scene match required.
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -62,8 +63,9 @@ export const PairList = () => {
 
       {hasLowConfidence && (
         <Alert className="mb-6 border-warning/50 bg-warning/10">
+          <AlertTriangle className="w-4 h-4 mr-2" />
           <AlertDescription className="text-sm">
-            We're not confident these photos match the same scene. You can still proceed or choose another pair.
+            Medium confidence match detected. Verify these photos are from the same scene before downloading.
           </AlertDescription>
         </Alert>
       )}
@@ -123,9 +125,21 @@ export const PairList = () => {
                   {/* Details */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">
-                        Pair {index + 1}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">
+                          Pair {index + 1}
+                        </span>
+                        {pair.confidenceTier === 'high' && (
+                          <span className="px-2 py-0.5 bg-green-500/10 text-green-700 dark:text-green-400 text-xs rounded-full border border-green-500/20">
+                            High
+                          </span>
+                        )}
+                        {pair.confidenceTier === 'medium' && (
+                          <span className="px-2 py-0.5 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-xs rounded-full border border-yellow-500/20">
+                            Medium
+                          </span>
+                        )}
+                      </div>
                       {isSelected && (
                         <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
                       )}

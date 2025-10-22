@@ -5,6 +5,7 @@ export interface ImageMetrics {
   sharpness: number;
   entropy: number;
   pHash: string;
+  colorHistogram: number[];
   hasFaces?: boolean;
 }
 
@@ -47,6 +48,7 @@ export async function computeImageMetrics(file: File): Promise<ImageMetrics> {
         const sharpness = computeSharpness(imageData);
         const entropy = computeEntropy(imageData);
         const pHash = computePHash(imageData);
+        const colorHistogram = computeColorHistogram(imageData);
         
         URL.revokeObjectURL(url);
         
@@ -55,6 +57,7 @@ export async function computeImageMetrics(file: File): Promise<ImageMetrics> {
           sharpness,
           entropy,
           pHash,
+          colorHistogram,
           hasFaces: false, // MVP: not implemented
         });
       } catch (error) {
@@ -146,6 +149,57 @@ function computeEntropy(imageData: ImageData): number {
   
   // Normalize to 0..1 (max entropy for 256 levels is 8 bits)
   return entropy / 8;
+}
+
+function computeColorHistogram(imageData: ImageData): number[] {
+  const { data } = imageData;
+  const hBins = 18; // 20-degree bins for hue
+  const sBins = 3;  // 3 bins for saturation
+  const vBins = 3;  // 3 bins for value
+  
+  const histogram = new Array(hBins + sBins + vBins).fill(0);
+  
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i] / 255;
+    const g = data[i + 1] / 255;
+    const b = data[i + 2] / 255;
+    
+    // Convert RGB to HSV
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const delta = max - min;
+    
+    // Hue
+    let h = 0;
+    if (delta !== 0) {
+      if (max === r) {
+        h = ((g - b) / delta + (g < b ? 6 : 0)) / 6;
+      } else if (max === g) {
+        h = ((b - r) / delta + 2) / 6;
+      } else {
+        h = ((r - g) / delta + 4) / 6;
+      }
+    }
+    
+    // Saturation
+    const s = max === 0 ? 0 : delta / max;
+    
+    // Value
+    const v = max;
+    
+    // Bin the values
+    const hBin = Math.floor(h * hBins);
+    const sBin = Math.floor(s * sBins);
+    const vBin = Math.floor(v * vBins);
+    
+    histogram[Math.min(hBin, hBins - 1)]++;
+    histogram[hBins + Math.min(sBin, sBins - 1)]++;
+    histogram[hBins + sBins + Math.min(vBin, vBins - 1)]++;
+  }
+  
+  // Normalize histogram
+  const total = data.length / 4;
+  return histogram.map(count => count / total);
 }
 
 export function normalizeMetrics(

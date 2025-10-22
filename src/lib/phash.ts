@@ -1,9 +1,9 @@
-// Simplified perceptual hash implementation
-// Returns a 64-bit hash as a hex string
+// Improved perceptual hash implementation
+// Returns a 256-bit hash as a hex string (16x16 for better precision)
 
 export function computePHash(imageData: ImageData): string {
   const size = 32; // Use 32x32 for DCT
-  const smallerSize = 8; // Reduce to 8x8 for hash
+  const smallerSize = 16; // Reduce to 16x16 for hash (256 bits)
   
   // Step 1: Resize to 32x32 and convert to grayscale
   const grayscale = resizeAndGrayscale(imageData, size);
@@ -36,7 +36,7 @@ export function computePHash(imageData: ImageData): string {
     hexHash += parseInt(nibble, 2).toString(16);
   }
   
-  return hexHash.padStart(16, '0');
+  return hexHash.padStart(64, '0'); // 256 bits = 64 hex chars
 }
 
 function resizeAndGrayscale(imageData: ImageData, targetSize: number): number[] {

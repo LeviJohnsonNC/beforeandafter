@@ -13,9 +13,40 @@ function computeSceneSimilarity(img1: UploadedImage, img2: UploadedImage): numbe
   if (!img1.metrics?.pHash || !img2.metrics?.pHash) return 0;
   
   const distance = hammingDistance(img1.metrics.pHash, img2.metrics.pHash);
-  const maxDistance = 64; // 64 bits in hash
+  const maxDistance = 256; // 256 bits in hash (16x16)
   
   return 1 - (distance / maxDistance);
+}
+
+function computeColorSimilarity(img1: UploadedImage, img2: UploadedImage): number {
+  if (!img1.metrics?.colorHistogram || !img2.metrics?.colorHistogram) return 0;
+  
+  const hist1 = img1.metrics.colorHistogram;
+  const hist2 = img2.metrics.colorHistogram;
+  
+  // Compute histogram intersection (similarity measure)
+  let intersection = 0;
+  for (let i = 0; i < hist1.length; i++) {
+    intersection += Math.min(hist1[i], hist2[i]);
+  }
+  
+  return intersection; // Already normalized 0..1
+}
+
+function computeSpatialSimilarity(img1: UploadedImage, img2: UploadedImage): number {
+  if (!img1.metrics || !img2.metrics) return 0;
+  
+  // Compare brightness distribution in a 3x3 grid
+  // This helps distinguish different room layouts even if overall brightness is similar
+  // For MVP, we use a simplified proxy based on entropy and brightness correlation
+  
+  const brightnessDiff = Math.abs(img1.metrics.brightness - img2.metrics.brightness);
+  const entropyDiff = Math.abs(img1.metrics.entropy - img2.metrics.entropy);
+  
+  // If both brightness and entropy are very similar, spatial layout is likely similar
+  const similarity = 1 - (brightnessDiff * 0.5 + entropyDiff * 0.5);
+  
+  return clamp(similarity, 0, 1);
 }
 
 function getTimestampDelta(img1: UploadedImage, img2: UploadedImage): number | undefined {
@@ -29,6 +60,8 @@ function getTimestampDelta(img1: UploadedImage, img2: UploadedImage): number | u
 
 function computeRationale(
   sceneSimilarity: number,
+  colorSimilarity: number,
+  spatialSimilarity: number,
   brightnessIncrease: number,
   sharpnessIncrease: number,
   entropyDrop: number,
@@ -37,8 +70,14 @@ function computeRationale(
 ): string[] {
   const rationale: string[] = [];
   
-  // Scene similarity
-  rationale.push(`Same scene ${sceneSimilarity.toFixed(2)}`);
+  // Scene similarity (combined)
+  const combinedScene = (sceneSimilarity * 0.6 + colorSimilarity * 0.3 + spatialSimilarity * 0.1);
+  rationale.push(`Scene match ${(combinedScene * 100).toFixed(0)}%`);
+  
+  // Color similarity
+  if (colorSimilarity >= 0.75) {
+    rationale.push(`Color match ${(colorSimilarity * 100).toFixed(0)}%`);
+  }
   
   // Brightness
   if (brightnessIncrease > 0.1) {
@@ -54,7 +93,7 @@ function computeRationale(
   
   // Entropy (clutter reduction)
   if (entropyDrop > 0.05) {
-    rationale.push(`Less clutter +${entropyDrop.toFixed(2)} entropy drop`);
+    rationale.push(`Less clutter -${entropyDrop.toFixed(2)} entropy`);
   }
   
   // Timestamp
@@ -84,9 +123,17 @@ export function scorePairs(images: UploadedImage[]): PairCandidate[] {
       if (!img1.metrics || !img2.metrics) continue;
       
       const sceneSimilarity = computeSceneSimilarity(img1, img2);
+      const colorSimilarity = computeColorSimilarity(img1, img2);
+      const spatialSimilarity = computeSpatialSimilarity(img1, img2);
       
-      // Skip pairs with very low scene similarity
-      if (sceneSimilarity < 0.5) continue;
+      // Combined scene matching score (structure + color + spatial)
+      const combinedSceneScore = 
+        0.60 * sceneSimilarity +
+        0.30 * colorSimilarity +
+        0.10 * spatialSimilarity;
+      
+      // Skip pairs with low combined scene similarity (raised threshold to 0.70)
+      if (combinedSceneScore < 0.70) continue;
       
       const timestampDelta = getTimestampDelta(img1, img2);
       
@@ -132,16 +179,29 @@ export function scorePairs(images: UploadedImage[]): PairCandidate[] {
       const privacyPenalty = 
         (beforeImg.metrics.hasFaces || afterImg.metrics.hasFaces) ? 0.2 : 0;
       
+      // Rebalanced scoring: 50% scene matching, 50% improvements
       const totalScore = 
-        0.30 * sceneSimilarity +
+        0.50 * combinedSceneScore +
         0.15 * timestampBonus +
-        0.20 * Math.max(0, brightnessIncrease) +
+        0.15 * Math.max(0, brightnessIncrease) +
         0.10 * Math.max(0, sharpnessIncrease) +
         0.10 * Math.max(0, entropyDrop) -
         0.10 * privacyPenalty;
       
+      // Determine confidence tier
+      let confidenceTier: 'high' | 'medium' | 'low';
+      if (combinedSceneScore >= 0.85) {
+        confidenceTier = 'high';
+      } else if (combinedSceneScore >= 0.70) {
+        confidenceTier = 'medium';
+      } else {
+        confidenceTier = 'low';
+      }
+      
       const rationale = computeRationale(
         sceneSimilarity,
+        colorSimilarity,
+        spatialSimilarity,
         brightnessIncrease,
         sharpnessIncrease,
         entropyDrop,
@@ -153,12 +213,15 @@ export function scorePairs(images: UploadedImage[]): PairCandidate[] {
         beforeId: beforeImg.id,
         afterId: afterImg.id,
         sceneSimilarity,
+        colorSimilarity,
+        spatialSimilarity,
         brightnessIncrease,
         sharpnessIncrease,
         entropyDrop,
         timestampDelta,
         privacyPenalty,
         totalScore: clamp(totalScore, 0, 1),
+        confidenceTier,
         rationale,
       });
     }
