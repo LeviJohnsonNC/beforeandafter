@@ -1,12 +1,33 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Topbar } from '@/components/Topbar';
+import { UploadZone } from '@/components/UploadZone';
+import { PairList } from '@/components/PairList';
+import { BrandingPanel } from '@/components/BrandingPanel';
+import { PreviewCanvas } from '@/components/PreviewCanvas';
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-gradient-subtle">
+      <Topbar />
+      
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left column - Upload & Pairs */}
+          <div className="lg:col-span-2 space-y-6">
+            <UploadZone />
+            <PairList />
+          </div>
+
+          {/* Right column - Branding */}
+          <div className="space-y-6">
+            <BrandingPanel />
+          </div>
+        </div>
+
+        {/* Full width preview */}
+        <div className="mt-6">
+          <PreviewCanvas />
+        </div>
+      </main>
     </div>
   );
 };

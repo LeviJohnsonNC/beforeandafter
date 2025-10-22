@@ -1,73 +1,128 @@
-# Welcome to your Lovable project
+# Before/After - AI-Powered Photo Pair Finder
 
-## Project info
+A modern web application that automatically detects the best before/after photo pairs from a batch upload, then generates branded side-by-side comparison images.
 
-**URL**: https://lovable.dev/projects/d426f1d0-1158-49af-9d6a-c66d3c347d0e
+## Features
 
-## How can I edit this code?
+- **Batch Photo Upload**: Drag & drop 4-20 images at once
+- **AI Pair Detection**: Automatic scene matching using perceptual hashing
+- **Smart Metrics**: Computes brightness, sharpness, entropy, and EXIF timestamps
+- **Confidence Scoring**: Ranks pairs based on scene similarity, quality improvements, and chronology
+- **Brand Watermarking**: Upload logo with automatic dominant color extraction
+- **Custom Positioning**: Choose watermark placement (4 corners)
+- **Professional Export**: Download high-quality PNG with labels and branding
 
-There are several ways of editing your application.
+## Technology Stack
 
-**Use Lovable**
+- **Frontend**: React 18 + TypeScript + Vite
+- **Styling**: TailwindCSS with custom design system
+- **State Management**: Zustand
+- **UI Components**: Radix UI (shadcn/ui)
+- **Image Processing**: Canvas API, perceptual hashing, EXIF reading
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/d426f1d0-1158-49af-9d6a-c66d3c347d0e) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+- Node.js 18+ and npm
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+```bash
+# Install dependencies
+npm install
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The app will be available at `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Build for Production
 
-**Use GitHub Codespaces**
+```bash
+npm run build
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## How It Works
 
-## What technologies are used for this project?
+### Image Metrics
 
-This project is built with:
+For each uploaded image, the app computes:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Brightness**: Mean luma (Y) from RGB, normalized 0-1
+- **Sharpness**: Laplacian variance, min-max normalized across batch
+- **Entropy**: Shannon entropy from grayscale histogram
+- **pHash**: 64-bit perceptual hash for scene similarity
+- **EXIF**: Extracts capture timestamp if available
 
-## How can I deploy this project?
+### Pair Scoring Algorithm
 
-Simply open [Lovable](https://lovable.dev/projects/d426f1d0-1158-49af-9d6a-c66d3c347d0e) and click on Share -> Publish.
+Each pair receives a confidence score (0-1) based on:
 
-## Can I connect a custom domain to my Lovable project?
+```
+totalScore = 0.30 × sceneSimilarity
+           + 0.15 × chronologyBonus
+           + 0.20 × brightnessIncrease
+           + 0.10 × sharpnessIncrease
+           + 0.10 × entropyDrop
+           - 0.10 × privacyPenalty
+```
 
-Yes, you can!
+Top 3 pairs are displayed with confidence bars and rationale bullets.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Canvas Export
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+The preview canvas:
+- Resizes both images to same height
+- Adds 16px gutter between panels
+- Places "Before | After" pill labels
+- Overlays watermark logo at 60% opacity
+- Exports as PNG under 1MB
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── Topbar.tsx           # Header with branding
+│   ├── UploadZone.tsx       # Drag & drop upload
+│   ├── ImageGrid.tsx        # Thumbnail grid with metrics
+│   ├── PairList.tsx         # AI candidate pairs
+│   ├── BrandingPanel.tsx    # Logo/watermark config
+│   └── PreviewCanvas.tsx    # Side-by-side render
+├── lib/
+│   ├── imageMetrics.ts      # Brightness, sharpness, entropy
+│   ├── phash.ts             # Perceptual hashing + Hamming distance
+│   ├── pairScoring.ts       # Pair ranking algorithm
+│   ├── exif.ts              # EXIF date extraction
+│   └── color.ts             # Dominant color detection
+├── store/
+│   └── useAppStore.ts       # Zustand state management
+├── types/
+│   └── index.ts             # TypeScript interfaces
+└── pages/
+    └── Index.tsx            # Main application page
+```
+
+## Accessibility
+
+- Full keyboard navigation
+- Visible focus states
+- ARIA live regions for status updates
+- Color contrast ≥ 4.5:1
+- Semantic HTML structure
+
+## Browser Support
+
+- Chrome/Edge 90+
+- Firefox 88+
+- Safari 14+
+
+## License
+
+MIT
+
+## Credits
+
+Built with ❤️ using React, TypeScript, and TailwindCSS
