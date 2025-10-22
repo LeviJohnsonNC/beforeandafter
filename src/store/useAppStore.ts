@@ -21,6 +21,8 @@ interface AppStore {
 const defaultBranding: BrandingConfig = {
   watermarkPosition: 'bottom-right',
   caption: '',
+  showLabels: true,
+  layout: 'equal',
 };
 
 export const useAppStore = create<AppStore>((set) => ({

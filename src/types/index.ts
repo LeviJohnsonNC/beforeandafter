@@ -38,6 +38,8 @@ export type BrandingConfig = {
   dominantColor?: string;
   watermarkPosition: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   caption?: string;
+  showLabels: boolean;
+  layout: 'equal' | 'before-larger' | 'after-larger';
 };
 
 export type WatermarkPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';

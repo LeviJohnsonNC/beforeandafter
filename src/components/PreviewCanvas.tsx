@@ -4,6 +4,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
+import { LayoutControls } from './LayoutControls';
 
 export const PreviewCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -21,6 +22,47 @@ export const PreviewCanvas = () => {
     renderCanvas(beforeImg.objectUrl, afterImg.objectUrl);
   }, [selectedPair, images, branding]);
 
+  const calculateDimensions = (
+    beforeImg: HTMLImageElement,
+    afterImg: HTMLImageElement,
+    layout: 'equal' | 'before-larger' | 'after-larger'
+  ) => {
+    const targetHeight = 600;
+    const gutter = 16;
+    const beforeAspect = beforeImg.width / beforeImg.height;
+    const afterAspect = afterImg.width / afterImg.height;
+
+    let beforeWidth: number;
+    let afterWidth: number;
+
+    if (layout === 'equal') {
+      beforeWidth = Math.round(targetHeight * beforeAspect);
+      afterWidth = Math.round(targetHeight * afterAspect);
+    } else {
+      // For unequal layouts, use a base width budget
+      const baseWidth = 1200;
+      const availableWidth = baseWidth - gutter;
+      
+      if (layout === 'before-larger') {
+        // 60% for before, 40% for after
+        beforeWidth = Math.round(availableWidth * 0.6);
+        afterWidth = Math.round(availableWidth * 0.4);
+      } else {
+        // 40% for before, 60% for after
+        beforeWidth = Math.round(availableWidth * 0.4);
+        afterWidth = Math.round(availableWidth * 0.6);
+      }
+    }
+
+    return {
+      beforeWidth,
+      afterWidth,
+      canvasWidth: beforeWidth + gutter + afterWidth,
+      canvasHeight: targetHeight,
+      gutter,
+    };
+  };
+
   const renderCanvas = async (beforeUrl: string, afterUrl: string) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -32,32 +74,28 @@ export const PreviewCanvas = () => {
     const beforeImg = await loadImage(beforeUrl);
     const afterImg = await loadImage(afterUrl);
 
-    // Calculate dimensions
-    const targetHeight = 600;
-    const gutter = 16;
+    // Calculate dimensions based on layout
+    const { beforeWidth, afterWidth, canvasWidth, canvasHeight, gutter } = 
+      calculateDimensions(beforeImg, afterImg, branding.layout);
     
-    const beforeAspect = beforeImg.width / beforeImg.height;
-    const afterAspect = afterImg.width / afterImg.height;
-    
-    const beforeWidth = Math.round(targetHeight * beforeAspect);
-    const afterWidth = Math.round(targetHeight * afterAspect);
-    
-    canvas.width = beforeWidth + gutter + afterWidth;
-    canvas.height = targetHeight;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
 
     // Clear canvas
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Draw before image
-    ctx.drawImage(beforeImg, 0, 0, beforeWidth, targetHeight);
+    ctx.drawImage(beforeImg, 0, 0, beforeWidth, canvasHeight);
 
     // Draw after image
-    ctx.drawImage(afterImg, beforeWidth + gutter, 0, afterWidth, targetHeight);
+    ctx.drawImage(afterImg, beforeWidth + gutter, 0, afterWidth, canvasHeight);
 
-    // Draw labels
-    drawLabel(ctx, 'Before', 20, 30);
-    drawLabel(ctx, 'After', beforeWidth + gutter + 20, 30);
+    // Draw labels if enabled
+    if (branding.showLabels) {
+      drawLabel(ctx, 'Before', 20, 30);
+      drawLabel(ctx, 'After', beforeWidth + gutter + 20, 30);
+    }
 
     // Draw watermark if logo exists
     if (branding.logoUrl) {
@@ -199,38 +237,42 @@ export const PreviewCanvas = () => {
   }
 
   return (
-    <Card className="p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold">Preview</h2>
-        <Button 
-          onClick={handleDownload} 
-          disabled={isGenerating}
-          className="gap-2"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Generating...
-            </>
-          ) : (
-            <>
-              <Download className="w-4 h-4" />
-              Download PNG
-            </>
-          )}
-        </Button>
-      </div>
+    <div className="space-y-6">
+      <LayoutControls />
+      
+      <Card className="p-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold">Preview</h2>
+          <Button 
+            onClick={handleDownload} 
+            disabled={isGenerating}
+            className="gap-2"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                Download PNG
+              </>
+            )}
+          </Button>
+        </div>
 
-      <div className="rounded-xl overflow-hidden border border-border bg-muted shadow-lg">
-        <canvas 
-          ref={canvasRef}
-          className="w-full h-auto"
-        />
-      </div>
+        <div className="rounded-xl overflow-hidden border border-border bg-muted shadow-lg">
+          <canvas 
+            ref={canvasRef}
+            className="w-full h-auto"
+          />
+        </div>
 
-      <p className="text-center text-sm text-muted-foreground mt-4">
-        Looks good? Download PNG
-      </p>
-    </Card>
+        <p className="text-center text-sm text-muted-foreground mt-4">
+          Looks good? Download PNG
+        </p>
+      </Card>
+    </div>
   );
 };
