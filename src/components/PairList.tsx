@@ -49,7 +49,7 @@ export const PairList = () => {
     <Card className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <h2 className="text-xl font-semibold">AI Picks (Top {candidates.length})</h2>
+          <h2 className="text-xl font-semibold">Before / After Matches (Top {candidates.length})</h2>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -159,11 +159,6 @@ export const PairList = () => {
                             Medium
                           </Badge>
                         )}
-                        {pair.aiVerified && (
-                          <Badge variant="default" className="bg-blue-600">
-                            AI Verified ✓
-                          </Badge>
-                        )}
                       </div>
                       {isSelected && (
                         <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
@@ -194,7 +189,7 @@ export const PairList = () => {
                       ))}
                       {pair.aiReasoning && (
                         <li className="text-xs text-blue-700 dark:text-blue-400 flex items-start mt-2">
-                          <span className="mr-2">🤖</span>
+                          <span className="mr-2">•</span>
                           <span>{pair.aiReasoning}</span>
                         </li>
                       )}
