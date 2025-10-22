@@ -244,9 +244,9 @@ export const PreviewCanvas = () => {
     canvasWidth: number,
     canvasHeight: number
   ) => {
-    const maxLogoWidth = canvasWidth * 0.1;
+    // Fixed logo size regardless of canvas dimensions
     const logoAspect = logoImg.width / logoImg.height;
-    const logoWidth = Math.min(maxLogoWidth, 150);
+    const logoWidth = 100; // Fixed width
     const logoHeight = logoWidth / logoAspect;
     
     const margin = 20;
