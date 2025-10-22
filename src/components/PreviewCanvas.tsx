@@ -13,9 +13,8 @@ export const PreviewCanvas = () => {
   useEffect(() => {
     if (!selectedPair || !canvasRef.current) return;
 
-    // Swap to fix display order
-    const beforeImg = images.find(img => img.id === selectedPair.afterId);
-    const afterImg = images.find(img => img.id === selectedPair.beforeId);
+    const beforeImg = images.find(img => img.id === selectedPair.beforeId);
+    const afterImg = images.find(img => img.id === selectedPair.afterId);
 
     if (!beforeImg || !afterImg) return;
 

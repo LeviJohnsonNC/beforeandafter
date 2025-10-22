@@ -91,9 +91,8 @@ export const PairList = () => {
       ) : (
         <div className="space-y-4">
           {candidates.map((pair, index) => {
-            // Swap to fix display order
-            const beforeImg = getBeforeImage(pair.afterId);
-            const afterImg = getAfterImage(pair.beforeId);
+            const beforeImg = getBeforeImage(pair.beforeId);
+            const afterImg = getAfterImage(pair.afterId);
             
             if (!beforeImg || !afterImg) return null;
 
