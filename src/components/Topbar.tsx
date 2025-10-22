@@ -5,9 +5,7 @@ export const Topbar = () => {
     <header className="w-full bg-gradient-primary shadow-md">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-20 h-20 rounded-xl bg-white/20 backdrop-blur-sm">
-            <img src={logo} alt="Before/After Logo" className="w-12 h-12" />
-          </div>
+          <img src={logo} alt="Before/After Logo" className="w-24 h-24" />
           <div>
             <h1 className="text-2xl font-bold text-white tracking-tight">
               Before / After
