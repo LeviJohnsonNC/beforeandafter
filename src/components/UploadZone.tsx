@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Upload, X, RotateCcw } from 'lucide-react';
+import { nanoid } from 'nanoid';
 import { useAppStore } from '@/store/useAppStore';
 import { UploadedImage } from '@/types';
 import { computeImageMetrics, normalizeMetrics } from '@/lib/imageMetrics';
@@ -36,8 +37,10 @@ export const UploadZone = () => {
     const newImages: UploadedImage[] = [];
 
     for (const file of imageFiles) {
-      const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const id = nanoid();
       const objectUrl = URL.createObjectURL(file);
+      
+      console.log(`📸 Generated unique ID for ${file.name}: ${id}`);
       
       const exifDate = await extractExifDate(file);
       

@@ -113,7 +113,16 @@ function computeRationale(
 }
 
 export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate[]> {
+  console.log(`\n🔍 === DIAGNOSTIC: Starting pair analysis for ${images.length} images ===`);
+  images.forEach((img, idx) => {
+    console.log(`  Image ${idx + 1}: ${img.file.name} (ID: ${img.id})`);
+    console.log(`    Brightness: ${img.metrics?.brightness.toFixed(3)}, Timestamp: ${img.exif?.takenAt || 'none'}`);
+  });
+
   const candidates: PairCandidate[] = [];
+  let totalPairsEvaluated = 0;
+  let pairsPassingThreshold = 0;
+  let pairsRejectedByThreshold = 0;
   
   // Generate all possible pairs
   for (let i = 0; i < images.length; i++) {
@@ -122,6 +131,8 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
       const img2 = images[j];
       
       if (!img1.metrics || !img2.metrics) continue;
+      
+      totalPairsEvaluated++;
       
       const sceneSimilarity = computeSceneSimilarity(img1, img2);
       const colorSimilarity = computeColorSimilarity(img1, img2);
@@ -133,8 +144,22 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
         0.30 * colorSimilarity +
         0.10 * spatialSimilarity;
       
-      // Skip pairs with low combined scene similarity (lowered to 0.65 for more candidates)
-      if (combinedSceneScore < 0.65) continue;
+      console.log(`\n📊 Pair ${totalPairsEvaluated}: "${img1.file.name}" vs "${img2.file.name}"`);
+      console.log(`  IDs: ${img1.id} vs ${img2.id}`);
+      console.log(`  Scene Similarity: ${sceneSimilarity.toFixed(3)} (pHash)`);
+      console.log(`  Color Similarity: ${colorSimilarity.toFixed(3)}`);
+      console.log(`  Spatial Similarity: ${spatialSimilarity.toFixed(3)}`);
+      console.log(`  Combined Score: ${combinedSceneScore.toFixed(3)} (threshold: 0.50)`);
+      
+      // DIAGNOSTIC: Lowered threshold to 0.50 to see more candidates
+      if (combinedSceneScore < 0.50) {
+        console.log(`  ❌ REJECTED: Below threshold`);
+        pairsRejectedByThreshold++;
+        continue;
+      }
+      
+      console.log(`  ✅ PASSED threshold, will evaluate improvements...`);
+      pairsPassingThreshold++;
       
       const timestampDelta = getTimestampDelta(img1, img2);
       
@@ -143,9 +168,9 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
       let afterImg = img2;
       let orderingMethod = 'default';
       
-      console.log(`\n📊 Ordering pair: img1(${img1.id.slice(0,8)}) vs img2(${img2.id.slice(0,8)})`);
-      console.log(`  img1 brightness: ${img1.metrics.brightness.toFixed(3)}, timestamp: ${img1.exif?.takenAt || 'none'}`);
-      console.log(`  img2 brightness: ${img2.metrics.brightness.toFixed(3)}, timestamp: ${img2.exif?.takenAt || 'none'}`);
+      console.log(`  🔄 Ordering pair: "${img1.file.name}" vs "${img2.file.name}"`);
+      console.log(`    img1 brightness: ${img1.metrics.brightness.toFixed(3)}, timestamp: ${img1.exif?.takenAt || 'none'}`);
+      console.log(`    img2 brightness: ${img2.metrics.brightness.toFixed(3)}, timestamp: ${img2.exif?.takenAt || 'none'}`);
       
       if (timestampDelta !== undefined) {
         // Use timestamp if available (positive delta = img2 is later)
@@ -160,7 +185,7 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
           afterImg = img1;
           orderingMethod = 'timestamp (img1 later)';
         }
-        console.log(`  timestampDelta: ${timestampDelta.toFixed(0)}s, method: ${orderingMethod}`);
+        console.log(`    timestampDelta: ${timestampDelta.toFixed(0)}s, method: ${orderingMethod}`);
       } else {
         // No timestamp - use brightness: BRIGHTER = AFTER (cleaner)
         if (img1.metrics.brightness > img2.metrics.brightness) {
@@ -174,11 +199,11 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
           afterImg = img2;
           orderingMethod = 'brightness (img2 brighter)';
         }
-        console.log(`  No timestamp, using brightness. Method: ${orderingMethod}`);
+        console.log(`    No timestamp, using brightness. Method: ${orderingMethod}`);
       }
       
-      console.log(`  ✅ Result: before=${beforeImg.id.slice(0,8)} (${beforeImg.metrics.brightness.toFixed(3)}), after=${afterImg.id.slice(0,8)} (${afterImg.metrics.brightness.toFixed(3)})`);
-      console.log(`  Ordering method: ${orderingMethod}`);
+      console.log(`    Result: before="${beforeImg.file.name}" (${beforeImg.metrics.brightness.toFixed(3)}), after="${afterImg.file.name}" (${afterImg.metrics.brightness.toFixed(3)})`);
+      console.log(`    Ordering method: ${orderingMethod}`);
       
       const brightnessIncrease = clamp(
         afterImg.metrics.brightness - beforeImg.metrics.brightness,
@@ -235,6 +260,8 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
         privacyPenalty
       );
       
+      console.log(`  💯 Candidate Score: ${totalScore.toFixed(3)} (confidence: ${confidenceTier})`);
+      
       candidates.push({
         beforeId: beforeImg.id,
         afterId: afterImg.id,
@@ -253,23 +280,41 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
     }
   }
   
+  console.log(`\n📈 === PRE-AI FILTERING SUMMARY ===`);
+  console.log(`  Total pairs evaluated: ${totalPairsEvaluated}`);
+  console.log(`  Pairs passing threshold (≥0.50): ${pairsPassingThreshold}`);
+  console.log(`  Pairs rejected by threshold: ${pairsRejectedByThreshold}`);
+  console.log(`  Candidates for AI verification: ${candidates.length}`);
+  
   // Sort by score
   const sortedCandidates = candidates.sort((a, b) => b.totalScore - a.totalScore);
   
+  if (sortedCandidates.length === 0) {
+    console.log(`\n✅ === FINAL RESULTS ===`);
+    console.log(`  No candidates found after perceptual filtering`);
+    return [];
+  }
+  
+  console.log(`\n🤖 === AI VERIFICATION PHASE ===`);
+  console.log(`  Sending top ${Math.min(6, sortedCandidates.length)} candidates to AI for verification`);
+  
   // MANDATORY AI verification for ALL top candidates (not just medium confidence)
   const verifiedCandidates = await Promise.all(
-    sortedCandidates.slice(0, 6).map(async (candidate) => {
+    sortedCandidates.slice(0, 6).map(async (candidate, idx) => {
       // Verify ALL top 6 candidates regardless of confidence tier
       const beforeImg = images.find(img => img.id === candidate.beforeId);
       const afterImg = images.find(img => img.id === candidate.afterId);
       
       if (beforeImg && afterImg) {
-        console.log(`🤖 Mandatory AI verification for pair ${sortedCandidates.indexOf(candidate) + 1}/6 (score: ${candidate.totalScore.toFixed(2)}, tier: ${candidate.confidenceTier})...`);
+        console.log(`  Verifying candidate ${idx + 1}: "${beforeImg.file.name}" vs "${afterImg.file.name}" (score: ${candidate.totalScore.toFixed(2)}, tier: ${candidate.confidenceTier})`);
         const aiResult = await verifySceneMatch(beforeImg, afterImg);
         
         if (aiResult) {
           candidate.aiVerified = aiResult.match;
           candidate.aiReasoning = aiResult.reasoning;
+          
+          console.log(`    AI Result: ${aiResult.match ? '✅ MATCH' : '❌ NO MATCH'} (confidence: ${aiResult.confidence}%)`);
+          console.log(`    Reasoning: ${aiResult.reasoning}`);
           
           // Three-tier AI scoring system
           if (aiResult.match && aiResult.confidence >= 80) {
@@ -277,17 +322,17 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
             const aiBoost = (aiResult.confidence / 100) * 0.15;
             candidate.totalScore = Math.min(1, candidate.totalScore + aiBoost);
             candidate.confidenceTier = 'high';
-            console.log(`✅ Tier 1: AI confirmed (${aiResult.confidence}%) - boosted score to ${candidate.totalScore.toFixed(2)}, upgraded to HIGH`);
+            console.log(`    ✅ Tier 1: Boosted score to ${candidate.totalScore.toFixed(2)}, upgraded to HIGH`);
           } else if (aiResult.match && aiResult.confidence >= 70) {
             // Tier 2: Medium confidence (70-79%) - keep original score and tier
-            console.log(`✅ Tier 2: AI confirmed (${aiResult.confidence}%) - kept original score ${candidate.totalScore.toFixed(2)}, tier: ${candidate.confidenceTier}`);
+            console.log(`    ✅ Tier 2: Kept original score ${candidate.totalScore.toFixed(2)}, tier: ${candidate.confidenceTier}`);
           } else {
             // Tier 3: Low confidence (<70%) or no match - reject completely
             candidate.totalScore = 0;
-            console.log(`❌ Tier 3: AI rejected (${aiResult.confidence}%) - ${aiResult.reasoning}`);
+            console.log(`    ❌ Tier 3: REJECTED`);
           }
         } else {
-          console.log(`⚠️ AI verification failed for pair - keeping original score`);
+          console.log(`    ⚠️ AI verification failed - keeping original score`);
         }
       }
       
@@ -296,8 +341,18 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
   );
   
   // Filter out rejected pairs and return top 3
-  return verifiedCandidates
+  const finalCandidates = verifiedCandidates
     .filter(c => c.totalScore > 0)
     .sort((a, b) => b.totalScore - a.totalScore)
     .slice(0, 3);
+  
+  console.log(`\n✅ === FINAL RESULTS ===`);
+  console.log(`  Accepted ${finalCandidates.length} candidates after AI verification`);
+  finalCandidates.forEach((c, idx) => {
+    const beforeImg = images.find(img => img.id === c.beforeId);
+    const afterImg = images.find(img => img.id === c.afterId);
+    console.log(`  ${idx + 1}. "${beforeImg?.file.name}" → "${afterImg?.file.name}" (score: ${c.totalScore.toFixed(2)})`);
+  });
+  
+  return finalCandidates;
 }
