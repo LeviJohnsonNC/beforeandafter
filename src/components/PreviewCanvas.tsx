@@ -134,11 +134,11 @@ export const PreviewCanvas = () => {
     ctx.save();
     
     // Measure text with updated styling
-    ctx.font = 'bold 20px system-ui, -apple-system, sans-serif';
+    ctx.font = 'bold 30px system-ui, -apple-system, sans-serif';
     const metrics = ctx.measureText(text);
-    const padding = 16;
+    const padding = 24;
     const width = metrics.width + padding * 2;
-    const height = 36;
+    const height = 54;
 
     // Draw subtle shadow
     ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
