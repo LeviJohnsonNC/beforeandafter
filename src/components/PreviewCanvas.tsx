@@ -249,10 +249,48 @@ export const PreviewCanvas = () => {
     canvasHeight: number
   ) => {
     ctx.save();
-    ctx.font = '14px system-ui, -apple-system, sans-serif';
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    
+    // Set font for measuring
+    ctx.font = '600 18px Inter, system-ui, -apple-system, sans-serif';
+    ctx.textBaseline = 'middle';
+    
+    // Measure text for chip dimensions
+    const metrics = ctx.measureText(caption);
+    const paddingX = 16;
+    const paddingY = 10;
+    const width = metrics.width + paddingX * 2;
+    const height = 38;
+    const borderRadius = 8;
+    
+    // Position centered horizontally, with margin from bottom
+    const x = (canvasWidth - width) / 2;
+    const y = canvasHeight - height - 40;
+    
+    // Determine colors based on brand
+    const bgColor = branding.dominantColor || '#FFFFFF';
+    const textColor = branding.dominantColor ? getContrastColor(branding.dominantColor) : '#000000';
+    const borderColor = branding.dominantColor ? 'rgba(0, 0, 0, 0.15)' : 'rgba(0, 0, 0, 0.1)';
+    
+    // Draw background chip
+    ctx.fillStyle = bgColor;
+    ctx.beginPath();
+    ctx.roundRect(x, y, width, height, borderRadius);
+    ctx.fill();
+    
+    // Draw border
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(x, y, width, height, borderRadius);
+    ctx.stroke();
+    
+    // Draw text
+    ctx.fillStyle = textColor;
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
     ctx.textAlign = 'center';
-    ctx.fillText(caption, canvasWidth / 2, canvasHeight - 15);
+    ctx.fillText(caption, canvasWidth / 2, y + height / 2);
+    
     ctx.restore();
   };
 
