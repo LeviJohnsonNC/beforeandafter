@@ -123,9 +123,6 @@ export const PairList = () => {
                       <span className="absolute bottom-1 left-1 px-2 py-0.5 bg-black/70 text-white text-xs rounded">
                         Before
                       </span>
-                      <div className="absolute top-1 left-1 px-1 py-0.5 bg-black/50 text-white text-[10px] rounded max-w-[72px] truncate">
-                        {beforeImg.file.name}
-                      </div>
                     </div>
                     <div className="relative">
                       <img
@@ -136,9 +133,6 @@ export const PairList = () => {
                       <span className="absolute bottom-1 left-1 px-2 py-0.5 bg-black/70 text-white text-xs rounded">
                         After
                       </span>
-                      <div className="absolute top-1 left-1 px-1 py-0.5 bg-black/50 text-white text-[10px] rounded max-w-[72px] truncate">
-                        {afterImg.file.name}
-                      </div>
                     </div>
                   </div>
 
