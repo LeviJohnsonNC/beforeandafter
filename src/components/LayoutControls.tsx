@@ -3,6 +3,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 export const LayoutControls = () => {
   const { branding, updateBranding } = useAppStore();
@@ -21,50 +22,79 @@ export const LayoutControls = () => {
         />
       </div>
 
-      {/* Layout Selection - Horizontal */}
+      {/* Layout Selection - Icon Only with Tooltips */}
       <div className="space-y-2">
         <Label className="text-sm font-medium">Image Layout</Label>
-        <ToggleGroup
-          type="single"
-          value={branding.layout}
-          onValueChange={(value) => {
-            if (value) updateBranding({ layout: value as typeof branding.layout });
-          }}
-          className="justify-start gap-2 flex-wrap"
-        >
-          <ToggleGroupItem
-            value="equal"
-            aria-label="Equal size"
-            className="flex items-center gap-1.5 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+        <TooltipProvider>
+          <ToggleGroup
+            type="single"
+            value={branding.layout}
+            onValueChange={(value) => {
+              if (value) updateBranding({ layout: value as typeof branding.layout });
+            }}
+            className="justify-start gap-1"
           >
-            <Columns2 className="w-4 h-4" />
-            <span className="text-sm">Equal</span>
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="before-larger"
-            aria-label="Before image larger"
-            className="flex items-center gap-1.5 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-          >
-            <PanelLeft className="w-4 h-4" />
-            <span className="text-sm">Before Larger</span>
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="after-larger"
-            aria-label="After image larger"
-            className="flex items-center gap-1.5 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-          >
-            <PanelRight className="w-4 h-4" />
-            <span className="text-sm">After Larger</span>
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="slide-reveal"
-            aria-label="Slide reveal comparison"
-            className="flex items-center gap-1.5 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            <span className="text-sm">Slide Reveal</span>
-          </ToggleGroupItem>
-        </ToggleGroup>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <ToggleGroupItem
+                  value="equal"
+                  aria-label="Equal size"
+                  className="px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                >
+                  <Columns2 className="w-5 h-5" />
+                </ToggleGroupItem>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Equal Size</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <ToggleGroupItem
+                  value="before-larger"
+                  aria-label="Before image larger"
+                  className="px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                >
+                  <PanelLeft className="w-5 h-5" />
+                </ToggleGroupItem>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Before Larger</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <ToggleGroupItem
+                  value="after-larger"
+                  aria-label="After image larger"
+                  className="px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                >
+                  <PanelRight className="w-5 h-5" />
+                </ToggleGroupItem>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>After Larger</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <ToggleGroupItem
+                  value="slide-reveal"
+                  aria-label="Slide reveal comparison"
+                  className="px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                >
+                  <SlidersHorizontal className="w-5 h-5" />
+                </ToggleGroupItem>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Slide Reveal</p>
+              </TooltipContent>
+            </Tooltip>
+          </ToggleGroup>
+        </TooltipProvider>
       </div>
     </div>
   );
