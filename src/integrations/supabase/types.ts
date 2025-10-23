@@ -14,7 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      comparisons: {
+        Row: {
+          after_image_url: string
+          before_image_url: string
+          branding_config: Json | null
+          created_at: string
+          id: string
+          view_count: number
+        }
+        Insert: {
+          after_image_url: string
+          before_image_url: string
+          branding_config?: Json | null
+          created_at?: string
+          id?: string
+          view_count?: number
+        }
+        Update: {
+          after_image_url?: string
+          before_image_url?: string
+          branding_config?: Json | null
+          created_at?: string
+          id?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

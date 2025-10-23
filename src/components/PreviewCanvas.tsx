@@ -1,14 +1,19 @@
 import { useRef, useEffect, useState } from 'react';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2, Share2 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { SlideRevealPreview } from './SlideRevealPreview';
+import { ShareDialog } from './ShareDialog';
+import { uploadAndCreateComparison, ShareableComparison } from '@/lib/comparisonSharing';
 
 export const PreviewCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareableComparison, setShareableComparison] = useState<ShareableComparison | null>(null);
   const { images, selectedPair, branding } = useAppStore();
 
   useEffect(() => {
@@ -426,47 +431,111 @@ export const PreviewCanvas = () => {
     }
   };
 
+  const handleShare = async () => {
+    if (!selectedPair) return;
+
+    const beforeImg = images.find(img => img.id === selectedPair.beforeId);
+    const afterImg = images.find(img => img.id === selectedPair.afterId);
+
+    if (!beforeImg || !afterImg) {
+      toast.error('Images not found');
+      return;
+    }
+
+    setIsSharing(true);
+    toast.info('Creating shareable link...');
+
+    try {
+      const comparison = await uploadAndCreateComparison(
+        beforeImg.file,
+        afterImg.file,
+        branding
+      );
+
+      if (comparison) {
+        setShareableComparison(comparison);
+        setShareDialogOpen(true);
+        toast.success('Shareable link created!');
+      } else {
+        toast.error('Failed to create shareable link');
+      }
+    } catch (error) {
+      console.error('Error creating share link:', error);
+      toast.error('Failed to create shareable link');
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   if (!selectedPair) {
     return null;
   }
 
   return (
-    <Card className="p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold">Preview</h2>
-        <Button 
-          onClick={handleDownload} 
-          disabled={isGenerating}
-          className="gap-2"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Generating...
-            </>
+    <>
+      <Card className="p-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold">Preview</h2>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleShare} 
+              disabled={isSharing}
+              variant="outline"
+              className="gap-2"
+            >
+              {isSharing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Share2 className="w-4 h-4" />
+                  Share
+                </>
+              )}
+            </Button>
+            <Button 
+              onClick={handleDownload} 
+              disabled={isGenerating}
+              className="gap-2"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  Download PNG
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        <div className="rounded-xl overflow-hidden border border-border bg-muted shadow-lg">
+          {branding.layout === 'slide-reveal' ? (
+            <SlideRevealPreview />
           ) : (
-            <>
-              <Download className="w-4 h-4" />
-              Download PNG
-            </>
+            <canvas 
+              ref={canvasRef}
+              className="w-full h-auto"
+            />
           )}
-        </Button>
-      </div>
+        </div>
 
-      <div className="rounded-xl overflow-hidden border border-border bg-muted shadow-lg">
-        {branding.layout === 'slide-reveal' ? (
-          <SlideRevealPreview />
-        ) : (
-          <canvas 
-            ref={canvasRef}
-            className="w-full h-auto"
-          />
-        )}
-      </div>
+        <p className="text-center text-sm text-muted-foreground mt-4">
+          Download PNG or create a shareable link
+        </p>
+      </Card>
 
-      <p className="text-center text-sm text-muted-foreground mt-4">
-        Looks good? Download PNG
-      </p>
-    </Card>
+      <ShareDialog 
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        comparison={shareableComparison}
+      />
+    </>
   );
 };
