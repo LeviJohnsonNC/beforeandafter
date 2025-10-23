@@ -9,7 +9,7 @@ import { SlideRevealPreview } from './SlideRevealPreview';
 export const PreviewCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const { images, selectedPair, branding } = useAppStore();
+  const { images, selectedPair, branding, alignedImages } = useAppStore();
 
   useEffect(() => {
     if (!selectedPair || !canvasRef.current) return;
@@ -19,8 +19,11 @@ export const PreviewCanvas = () => {
 
     if (!beforeImg || !afterImg) return;
 
-    renderCanvas(beforeImg.objectUrl, afterImg.objectUrl);
-  }, [selectedPair, images, branding]);
+    // Use aligned version if available
+    const afterImgUrl = alignedImages.get(afterImg.id) || afterImg.objectUrl;
+
+    renderCanvas(beforeImg.objectUrl, afterImgUrl);
+  }, [selectedPair, images, branding, alignedImages]);
 
   const calculateDimensions = (
     beforeImg: HTMLImageElement,
