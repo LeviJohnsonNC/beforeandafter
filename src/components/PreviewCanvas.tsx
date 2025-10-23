@@ -139,15 +139,15 @@ export const PreviewCanvas = () => {
     if (branding.layout === 'slide-reveal') {
       const sliderPosition = 0.5; // 50% reveal
       
-      // Draw before image (full)
-      ctx.drawImage(beforeImg, 0, 0, canvasWidth, canvasHeight);
+      // Draw after image (full background)
+      ctx.drawImage(afterImg, 0, 0, canvasWidth, canvasHeight);
       
-      // Draw after image (clipped)
+      // Draw before image (clipped)
       ctx.save();
       ctx.beginPath();
       ctx.rect(0, 0, canvasWidth * sliderPosition, canvasHeight);
       ctx.clip();
-      ctx.drawImage(afterImg, 0, 0, canvasWidth, canvasHeight);
+      ctx.drawImage(beforeImg, 0, 0, canvasWidth, canvasHeight);
       ctx.restore();
       
       // Draw slider divider
@@ -210,15 +210,10 @@ export const PreviewCanvas = () => {
       ctx.drawImage(afterImg, beforeWidth + gutter, 0, afterWidth, afterHeight);
     }
 
-    // Draw labels if enabled
-    if (branding.showLabels) {
-      if (branding.layout === 'slide-reveal') {
-        drawLabel(ctx, 'Before', 20, 30, canvasHeight, branding.dominantColor);
-        drawLabel(ctx, 'After', canvasWidth - 140, 30, canvasHeight, branding.dominantColor);
-      } else {
-        drawLabel(ctx, 'Before', 20, 30, canvasHeight, branding.dominantColor);
-        drawLabel(ctx, 'After', beforeWidth + gutter + 20, 30, canvasHeight, branding.dominantColor);
-      }
+    // Draw labels if enabled (not for slide-reveal)
+    if (branding.showLabels && branding.layout !== 'slide-reveal') {
+      drawLabel(ctx, 'Before', 20, 30, canvasHeight, branding.dominantColor);
+      drawLabel(ctx, 'After', beforeWidth + gutter + 20, 30, canvasHeight, branding.dominantColor);
     }
 
     // Draw watermark if logo exists

@@ -79,52 +79,24 @@ export const SlideRevealPreview = () => {
         cursor: isDragging ? 'col-resize' : 'default'
       }}
     >
-      {/* Before Image (Background) */}
+      {/* After Image (Background - fully visible) */}
       <img
-        src={beforeImg.objectUrl}
-        alt="Before"
+        src={afterImg.objectUrl}
+        alt="After"
         className="absolute inset-0 w-full h-full object-cover"
         draggable={false}
       />
 
-      {/* After Image (Clipped) */}
+      {/* Before Image (Clipped - reveals as you drag) */}
       <img
-        src={afterImg.objectUrl}
-        alt="After"
+        src={beforeImg.objectUrl}
+        alt="Before"
         className="absolute inset-0 w-full h-full object-cover"
         style={{
           clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`
         }}
         draggable={false}
       />
-
-      {/* Labels */}
-      {branding.showLabels && (
-        <>
-          <div
-            className="absolute top-5 left-5 px-6 py-3 rounded-xl font-black text-lg border-2 shadow-md"
-            style={{
-              backgroundColor: bgColor,
-              color: textColor,
-              borderColor: branding.dominantColor ? 'rgba(0, 0, 0, 0.15)' : 'rgba(0, 0, 0, 0.1)'
-            }}
-          >
-            Before
-          </div>
-          <div
-            className="absolute top-5 right-5 px-6 py-3 rounded-xl font-black text-lg border-2 shadow-md"
-            style={{
-              backgroundColor: bgColor,
-              color: textColor,
-              borderColor: branding.dominantColor ? 'rgba(0, 0, 0, 0.15)' : 'rgba(0, 0, 0, 0.1)',
-              opacity: sliderPosition > 75 ? 1 : 0,
-              transition: 'opacity 0.2s'
-            }}
-          >
-            After
-          </div>
-        </>
-      )}
 
       {/* Watermark */}
       {branding.logoUrl && (
