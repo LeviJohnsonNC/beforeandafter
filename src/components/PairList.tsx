@@ -220,7 +220,7 @@ export const PairList = () => {
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-2 pl-4">
                     {/* Enhanced Metrics Grid */}
-                    <div className="grid grid-cols-2 gap-2 mb-3">
+                    <div className="flex flex-row flex-nowrap gap-2 mb-3 overflow-x-auto">
                       {/* Scene Match */}
                       {pair.sceneSimilarity >= 1.0 ? (
                         <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 justify-start">
