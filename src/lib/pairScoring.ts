@@ -155,8 +155,8 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
       
       // MULTI-LAYERED DEFENSE: Individual component thresholds
       // Reject if scene structure is too weak (prevents false positives)
-      if (sceneSimilarity < 0.45) {
-        console.log(`  ❌ REJECTED: Scene similarity too low (${sceneSimilarity.toFixed(3)} < 0.45)`);
+      if (sceneSimilarity < 0.35) {
+        console.log(`  ❌ REJECTED: Scene similarity too low (${sceneSimilarity.toFixed(3)} < 0.35)`);
         pairsRejectedByThreshold++;
         continue;
       }
