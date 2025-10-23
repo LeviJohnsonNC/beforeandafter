@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Info, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Info, CheckCircle2, AlertTriangle, ChevronDown } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { scorePairs } from '@/lib/pairScoring';
 import { Card } from './ui/card';
@@ -13,10 +13,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from './ui/collapsible';
 
 export const PairList = () => {
   const { images, candidates, setCandidates, selectedPair, setSelectedPair } = useAppStore();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [expandedPairId, setExpandedPairId] = useState<string | null>(null);
 
   useEffect(() => {
     const analyzePairs = async () => {
@@ -172,21 +178,56 @@ export const PairList = () => {
                       />
                     </div>
 
-                    {/* Rationale */}
-                    <ul className="space-y-1">
-                      {pair.rationale.map((reason, i) => (
-                        <li key={i} className="text-xs text-muted-foreground flex items-start">
+                    {/* Highlights Summary */}
+                    <ul className="space-y-1 mb-2">
+                      {pair.highlightsSummary?.map((highlight, i) => (
+                        <li key={i} className="text-sm font-medium flex items-start">
                           <span className="mr-2">•</span>
-                          <span>{reason}</span>
+                          <span>{highlight}</span>
                         </li>
                       ))}
-                      {pair.aiReasoning && (
-                        <li className="text-xs text-blue-700 dark:text-blue-400 flex items-start mt-2">
-                          <span className="mr-2">•</span>
-                          <span>{pair.aiReasoning}</span>
-                        </li>
-                      )}
                     </ul>
+
+                    {/* AI Reasoning (if available) */}
+                    {pair.aiReasoning && (
+                      <p className="text-xs text-blue-700 dark:text-blue-400 mb-2 flex items-start">
+                        <span className="mr-2">🤖</span>
+                        <span>{pair.aiReasoning}</span>
+                      </p>
+                    )}
+
+                    {/* Collapsible Technical Details */}
+                    <Collapsible
+                      open={expandedPairId === `${pair.beforeId}-${pair.afterId}`}
+                      onOpenChange={(open) => 
+                        setExpandedPairId(open ? `${pair.beforeId}-${pair.afterId}` : null)
+                      }
+                    >
+                      <CollapsibleTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <span>View Technical Details</span>
+                          <ChevronDown 
+                            className={`ml-1 h-3 w-3 transition-transform duration-200 ${
+                              expandedPairId === `${pair.beforeId}-${pair.afterId}` ? 'rotate-180' : ''
+                            }`}
+                          />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="pt-2 border-t border-border/50 mt-2">
+                        <ul className="space-y-1">
+                          {pair.rationale.map((reason, i) => (
+                            <li key={i} className="text-xs text-muted-foreground flex items-start">
+                              <span className="mr-2">•</span>
+                              <span>{reason}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CollapsibleContent>
+                    </Collapsible>
                   </div>
                 </div>
               </button>

@@ -59,6 +59,71 @@ function getTimestampDelta(img1: UploadedImage, img2: UploadedImage): number | u
   return (date2 - date1) / 1000; // seconds
 }
 
+function formatMetricsForDisplay(
+  sceneSimilarity: number,
+  colorSimilarity: number,
+  spatialSimilarity: number,
+  brightnessIncrease: number,
+  sharpnessIncrease: number,
+  entropyDrop: number
+): { technical: string[], highlights: string[] } {
+  const technical: string[] = [];
+  const highlights: string[] = [];
+  
+  // Combined scene match
+  const combinedScene = (sceneSimilarity * 0.6 + colorSimilarity * 0.3 + spatialSimilarity * 0.1);
+  technical.push(`Scene Match: ${(combinedScene * 100).toFixed(0)}%`);
+  
+  // Color similarity
+  if (colorSimilarity >= 0.75) {
+    technical.push(`Color Similarity: ${(colorSimilarity * 100).toFixed(0)}%`);
+  }
+  
+  // Brightness improvement (normalize from -1/+1 to percentage)
+  if (Math.abs(brightnessIncrease) > 0.05) {
+    const brightnessPercent = (brightnessIncrease * 100).toFixed(0);
+    technical.push(`Brightness Change: ${brightnessPercent > '0' ? '+' : ''}${brightnessPercent}%`);
+    
+    if (brightnessIncrease > 0.1) {
+      highlights.push(`Significantly brighter and cleaner`);
+    }
+  }
+  
+  // Sharpness improvement (normalize from -1/+1 to percentage)
+  if (Math.abs(sharpnessIncrease) > 0.05) {
+    const sharpnessPercent = (sharpnessIncrease * 100).toFixed(0);
+    technical.push(`Sharpness Change: ${sharpnessPercent > '0' ? '+' : ''}${sharpnessPercent}%`);
+    
+    if (sharpnessIncrease > 0.1) {
+      highlights.push(`Improved image clarity`);
+    }
+  }
+  
+  // Image quality (from entropy - higher entropy = more detail/clutter)
+  if (Math.abs(entropyDrop) > 0.05) {
+    const qualityPercent = Math.abs(entropyDrop * 100).toFixed(0);
+    if (entropyDrop > 0) {
+      technical.push(`Clutter Reduction: ${qualityPercent}%`);
+      if (entropyDrop > 0.1) {
+        highlights.push(`Cleaner and more organized`);
+      }
+    } else {
+      technical.push(`Detail Increase: ${qualityPercent}%`);
+    }
+  }
+  
+  // If no strong highlights, create a generic one
+  if (highlights.length === 0) {
+    if (combinedScene >= 0.85) {
+      highlights.push(`Strong scene match detected`);
+    } else {
+      highlights.push(`Possible before/after pair`);
+    }
+  }
+  
+  return { technical, highlights };
+}
+
 function computeRationale(
   sceneSimilarity: number,
   colorSimilarity: number,
@@ -68,48 +133,31 @@ function computeRationale(
   entropyDrop: number,
   timestampDelta: number | undefined,
   privacyPenalty: number
-): string[] {
-  const rationale: string[] = [];
+): { rationale: string[], highlightsSummary: string[] } {
+  const { technical, highlights } = formatMetricsForDisplay(
+    sceneSimilarity,
+    colorSimilarity,
+    spatialSimilarity,
+    brightnessIncrease,
+    sharpnessIncrease,
+    entropyDrop
+  );
   
-  // Scene similarity (combined)
-  const combinedScene = (sceneSimilarity * 0.6 + colorSimilarity * 0.3 + spatialSimilarity * 0.1);
-  rationale.push(`Scene match ${(combinedScene * 100).toFixed(0)}%`);
+  const rationale = [...technical];
   
-  // Color similarity
-  if (colorSimilarity >= 0.75) {
-    rationale.push(`Color match ${(colorSimilarity * 100).toFixed(0)}%`);
-  }
-  
-  // Brightness
-  if (brightnessIncrease > 0.1) {
-    rationale.push(`Cleaner +${brightnessIncrease.toFixed(2)} brightness`);
-  } else if (brightnessIncrease < -0.1) {
-    rationale.push(`Darker ${brightnessIncrease.toFixed(2)} brightness`);
-  }
-  
-  // Sharpness
-  if (sharpnessIncrease > 0.05) {
-    rationale.push(`Sharper +${sharpnessIncrease.toFixed(2)}`);
-  }
-  
-  // Entropy (clutter reduction)
-  if (entropyDrop > 0.05) {
-    rationale.push(`Less clutter -${entropyDrop.toFixed(2)} entropy`);
-  }
-  
-  // Timestamp
+  // Add timestamp info to technical details
   if (timestampDelta !== undefined && timestampDelta > 60) {
-    rationale.push('Chronology ✓');
+    rationale.push('Chronological Order: Confirmed');
   } else if (timestampDelta !== undefined && timestampDelta < -60) {
-    rationale.push('Chronology ✗ (reversed)');
+    rationale.push('Chronological Order: Reversed');
   }
   
-  // Privacy
+  // Privacy info
   if (privacyPenalty > 0) {
-    rationale.push('Faces detected');
+    rationale.push('Note: Faces detected in images');
   }
   
-  return rationale;
+  return { rationale, highlightsSummary: highlights };
 }
 
 export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate[]> {
@@ -249,7 +297,7 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
         confidenceTier = 'low';
       }
       
-      const rationale = computeRationale(
+      const { rationale, highlightsSummary } = computeRationale(
         sceneSimilarity,
         colorSimilarity,
         spatialSimilarity,
@@ -276,6 +324,7 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
         totalScore: clamp(totalScore, 0, 1),
         confidenceTier,
         rationale,
+        highlightsSummary,
       });
     }
   }
