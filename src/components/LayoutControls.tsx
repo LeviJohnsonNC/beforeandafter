@@ -8,12 +8,17 @@ export const LayoutControls = () => {
   const { branding, updateBranding } = useAppStore();
 
   return (
-    <div className="space-y-4">
-      {/* Labels Toggle - Compact */}
+    <div className="flex flex-col gap-6 p-6 border border-border rounded-lg bg-card">
+      {/* Labels Toggle */}
       <div className="flex items-center justify-between">
-        <Label htmlFor="show-labels" className="text-sm font-medium">
-          Show Before/After Labels
-        </Label>
+        <div className="space-y-1">
+          <Label htmlFor="show-labels" className="text-sm font-medium">
+            Show Before/After Labels
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            Toggle the label chips on the images
+          </p>
+        </div>
         <Switch
           id="show-labels"
           checked={branding.showLabels}
@@ -21,9 +26,14 @@ export const LayoutControls = () => {
         />
       </div>
 
-      {/* Layout Selection - Horizontal */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Image Layout</Label>
+      {/* Layout Selection */}
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <Label className="text-sm font-medium">Image Layout</Label>
+          <p className="text-xs text-muted-foreground">
+            Choose how to size the before and after images
+          </p>
+        </div>
         <ToggleGroup
           type="single"
           value={branding.layout}
