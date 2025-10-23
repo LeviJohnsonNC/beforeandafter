@@ -26,8 +26,7 @@ export type PairCandidate = {
   privacyPenalty: number;      // 0 or 0.2 MVP
   totalScore: number;          // 0..1
   confidenceTier: 'high' | 'medium' | 'low'; // based on scene matching
-  rationale: string[];         // technical details for UI
-  highlightsSummary?: string[]; // user-friendly summary
+  rationale: string[];         // bullets for UI
   aiVerified?: boolean;        // LLM confirmed scene match
   aiReasoning?: string;        // LLM explanation
   image1IsBefore?: boolean;    // AI determined order (true = image1 is before)
