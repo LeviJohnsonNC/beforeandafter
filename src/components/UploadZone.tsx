@@ -15,7 +15,11 @@ export const UploadZone = () => {
   const [isDragging, setIsDragging] = useState(false);
 
   const processFiles = useCallback(async (files: File[]) => {
-    const imageFiles = files.filter(f => f.type.startsWith('image/'));
+    const imageFiles = files.filter(f => 
+      f.type === 'image/png' || 
+      f.type === 'image/jpeg' || 
+      f.type === 'image/jpg'
+    );
     
     if (imageFiles.length === 0) {
       toast.error('Please upload image files');
@@ -127,7 +131,7 @@ export const UploadZone = () => {
               <input
                 type="file"
                 multiple
-                accept="image/*"
+                accept="image/png,image/jpeg"
                 onChange={handleFileSelect}
                 className="hidden"
               />
@@ -160,7 +164,7 @@ export const UploadZone = () => {
                   <input
                     type="file"
                     multiple
-                    accept="image/*"
+                    accept="image/png,image/jpeg"
                     onChange={handleFileSelect}
                     className="hidden"
                   />
