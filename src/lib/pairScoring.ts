@@ -181,10 +181,10 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
         0.30 * colorSimilarity +
         0.10 * spatialSimilarity;
       
-      console.log(`  Combined Score: ${combinedSceneScore.toFixed(3)} (threshold: 0.55)`);
+      console.log(`  Combined Score: ${combinedSceneScore.toFixed(3)} (threshold: 0.50)`);
       
       // Stricter combined threshold to reduce false positives
-      if (combinedSceneScore < 0.55) {
+      if (combinedSceneScore < 0.50) {
         console.log(`  ❌ REJECTED: Below threshold`);
         pairsRejectedByThreshold++;
         continue;
