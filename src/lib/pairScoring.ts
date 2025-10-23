@@ -73,11 +73,11 @@ function computeRationale(
   
   // Scene similarity (combined)
   const combinedScene = (sceneSimilarity * 0.6 + colorSimilarity * 0.3 + spatialSimilarity * 0.1);
-  rationale.push(`Scene match ${(combinedScene * 100).toFixed(0)}%`);
+  rationale.push(`Scene match ${Math.min(100, (combinedScene * 100)).toFixed(0)}%`);
   
   // Color similarity
   if (colorSimilarity >= 0.75) {
-    rationale.push(`Color match ${(colorSimilarity * 100).toFixed(0)}%`);
+    rationale.push(`Color match ${Math.min(100, (colorSimilarity * 100)).toFixed(0)}%`);
   }
   
   // Brightness
