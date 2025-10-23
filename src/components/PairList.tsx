@@ -135,23 +135,23 @@ export const PairList = () => {
                   <div className="flex items-start gap-4">
                      {/* Thumbnails */}
                     <div className="flex gap-2 flex-shrink-0">
-                      <div className="relative">
+                      <div className="flex flex-col items-center gap-1">
                         <img
                           src={beforeImg.objectUrl}
                           alt="Before"
                           className="w-20 h-20 object-cover rounded-lg"
                         />
-                        <span className="absolute bottom-1 left-1 px-2 py-0.5 bg-black/70 text-white text-xs rounded">
+                        <span className="text-xs text-muted-foreground">
                           Before
                         </span>
                       </div>
-                      <div className="relative">
+                      <div className="flex flex-col items-center gap-1">
                         <img
                           src={afterImg.objectUrl}
                           alt="After"
                           className="w-20 h-20 object-cover rounded-lg"
                         />
-                        <span className="absolute bottom-1 left-1 px-2 py-0.5 bg-black/70 text-white text-xs rounded">
+                        <span className="text-xs text-muted-foreground">
                           After
                         </span>
                       </div>
