@@ -271,20 +271,11 @@ export const PairList = () => {
                     </Button>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-2 pl-4">
-                    <ul className="space-y-1">
-                      {pair.rationale.map((reason, i) => (
-                        <li key={i} className="text-xs text-muted-foreground flex items-start">
-                          <span className="mr-2">•</span>
-                          <span>{reason}</span>
-                        </li>
-                      ))}
-                      {pair.aiReasoning && (
-                        <li className="text-xs text-blue-700 dark:text-blue-400 flex items-start mt-2">
-                          <span className="mr-2">•</span>
-                          <span>{pair.aiReasoning}</span>
-                        </li>
-                      )}
-                    </ul>
+                    {pair.aiReasoning && (
+                      <p className="text-xs text-blue-700 dark:text-blue-400">
+                        {pair.aiReasoning}
+                      </p>
+                    )}
                   </CollapsibleContent>
                 </Collapsible>
               </div>
