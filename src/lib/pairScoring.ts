@@ -136,10 +136,10 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
       
       const sceneSimilarity = computeSceneSimilarity(img1, img2);
       
-      // Early rejection for obvious mismatches (>80% of bits different)
-      if (sceneSimilarity < 0.20) {
+      // Early rejection for obvious mismatches (>90% of bits different)
+      if (sceneSimilarity < 0.10) {
         console.log(`\n📊 Pair ${totalPairsEvaluated}: "${img1.file.name}" vs "${img2.file.name}"`);
-        console.log(`  Scene Similarity: ${sceneSimilarity.toFixed(3)} - ❌ REJECTED: Too dissimilar (early rejection)`);
+        console.log(`  Scene Similarity: ${sceneSimilarity.toFixed(3)} - ❌ REJECTED: Too dissimilar (< 0.10 early rejection)`);
         pairsRejectedByThreshold++;
         continue;
       }
