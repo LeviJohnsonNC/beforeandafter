@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { BrandingConfig } from '@/types';
+import { sanitizeFilename } from './filenameSanitizer';
 
 export type ShareableComparison = {
   id: string;
@@ -9,11 +10,13 @@ export type ShareableComparison = {
 
 export async function uploadImageToStorage(file: File, filename: string): Promise<string | null> {
   try {
-    console.log('Uploading image:', filename, 'Size:', file.size, 'Type:', file.type);
+    // Sanitize the filename to remove spaces and invalid characters
+    const sanitizedFilename = sanitizeFilename(filename);
+    console.log('Uploading image:', filename, '→', sanitizedFilename, 'Size:', file.size, 'Type:', file.type);
     
     const { data, error } = await supabase.storage
       .from('comparison-images')
-      .upload(filename, file, {
+      .upload(sanitizedFilename, file, {
         cacheControl: '3600',
         upsert: false
       });
@@ -91,14 +94,18 @@ export async function uploadAndCreateComparison(
   const beforeFilename = `before-${timestamp}-${beforeFile.name}`;
   const afterFilename = `after-${timestamp}-${afterFile.name}`;
 
+  console.log('Starting upload for:', beforeFilename, afterFilename);
+
   const [beforeUrl, afterUrl] = await Promise.all([
     uploadImageToStorage(beforeFile, beforeFilename),
     uploadImageToStorage(afterFile, afterFilename)
   ]);
 
   if (!beforeUrl || !afterUrl) {
+    console.error('Upload failed - Before URL:', beforeUrl, 'After URL:', afterUrl);
     return null;
   }
 
+  console.log('Upload successful, creating comparison record...');
   return createShareableComparison(beforeUrl, afterUrl, branding);
 }

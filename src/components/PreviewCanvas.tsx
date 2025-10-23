@@ -449,8 +449,14 @@ export const PreviewCanvas = () => {
       console.log('Starting share process...');
       
       // Convert objectUrls back to File objects by fetching the blobs
-      const beforeBlob = await fetch(beforeImg.objectUrl).then(r => r.blob());
-      const afterBlob = await fetch(afterImg.objectUrl).then(r => r.blob());
+      const beforeBlob = await fetch(beforeImg.objectUrl).then(r => {
+        if (!r.ok) throw new Error('Failed to fetch before image blob');
+        return r.blob();
+      });
+      const afterBlob = await fetch(afterImg.objectUrl).then(r => {
+        if (!r.ok) throw new Error('Failed to fetch after image blob');
+        return r.blob();
+      });
       
       const beforeFile = new File([beforeBlob], beforeImg.file.name, { type: beforeImg.file.type });
       const afterFile = new File([afterBlob], afterImg.file.name, { type: afterImg.file.type });
