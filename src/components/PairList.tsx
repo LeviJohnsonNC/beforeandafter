@@ -199,75 +199,6 @@ export const PairList = () => {
                           className="h-3"
                         />
                       </div>
-
-                      {/* Enhanced Metrics Grid */}
-                      <div className="grid grid-cols-2 gap-2">
-                        {/* Scene Match */}
-                        {pair.sceneSimilarity >= 1.0 ? (
-                          <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 justify-start">
-                            <CheckCircle2 className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                            <span className="truncate">Scene Match</span>
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="justify-start">
-                            <ScanEye className="w-3 h-3 mr-1.5 flex-shrink-0 opacity-70" />
-                            <span className="truncate">Scene</span>
-                          </Badge>
-                        )}
-
-                        {/* Color Match */}
-                        {pair.colorSimilarity >= 1.0 ? (
-                          <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 justify-start">
-                            <CheckCircle2 className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                            <span className="truncate">Color Match</span>
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="justify-start">
-                            <Palette className="w-3 h-3 mr-1.5 flex-shrink-0 opacity-70" />
-                            <span className="truncate">Color {(pair.colorSimilarity * 100).toFixed(0)}%</span>
-                          </Badge>
-                        )}
-
-                        {/* Clutter Reduction */}
-                        {pair.entropyDrop > 0 && (
-                          <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 justify-start">
-                            <Sparkles className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                            <span className="truncate">Cleaner</span>
-                          </Badge>
-                        )}
-
-                        {/* Brightness Increase */}
-                        {pair.brightnessIncrease > 0 && (
-                          <Badge className="bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 justify-start">
-                            <Sun className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                            <span className="truncate">Brighter +{pair.brightnessIncrease.toFixed(2)}</span>
-                          </Badge>
-                        )}
-
-                        {/* Sharpness Increase */}
-                        {pair.sharpnessIncrease > 0 && (
-                          <Badge className="bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/20 justify-start">
-                            <Focus className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                            <span className="truncate">Sharper</span>
-                          </Badge>
-                        )}
-
-                        {/* AI Verified */}
-                        {pair.aiVerified && (
-                          <Badge className="bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20 justify-start">
-                            <Bot className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                            <span className="truncate">AI Verified</span>
-                          </Badge>
-                        )}
-
-                        {/* Timeline */}
-                        {pair.timestampDelta !== undefined && (
-                          <Badge variant="secondary" className="justify-start">
-                            <Clock className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                            <span className="truncate">Timeline ✓</span>
-                          </Badge>
-                        )}
-                      </div>
                     </div>
                   </div>
                 </button>
@@ -288,6 +219,75 @@ export const PairList = () => {
                     </Button>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-2 pl-4">
+                    {/* Enhanced Metrics Grid */}
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      {/* Scene Match */}
+                      {pair.sceneSimilarity >= 1.0 ? (
+                        <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 justify-start">
+                          <CheckCircle2 className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">Scene Match</span>
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="justify-start">
+                          <ScanEye className="w-3 h-3 mr-1.5 flex-shrink-0 opacity-70" />
+                          <span className="truncate">Scene</span>
+                        </Badge>
+                      )}
+
+                      {/* Color Match */}
+                      {pair.colorSimilarity >= 1.0 ? (
+                        <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 justify-start">
+                          <CheckCircle2 className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">Color Match</span>
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="justify-start">
+                          <Palette className="w-3 h-3 mr-1.5 flex-shrink-0 opacity-70" />
+                          <span className="truncate">Color {(pair.colorSimilarity * 100).toFixed(0)}%</span>
+                        </Badge>
+                      )}
+
+                      {/* Clutter Reduction */}
+                      {pair.entropyDrop > 0 && (
+                        <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 justify-start">
+                          <Sparkles className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">Cleaner</span>
+                        </Badge>
+                      )}
+
+                      {/* Brightness Increase */}
+                      {pair.brightnessIncrease > 0 && (
+                        <Badge className="bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 justify-start">
+                          <Sun className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">Brighter +{pair.brightnessIncrease.toFixed(2)}</span>
+                        </Badge>
+                      )}
+
+                      {/* Sharpness Increase */}
+                      {pair.sharpnessIncrease > 0 && (
+                        <Badge className="bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/20 justify-start">
+                          <Focus className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">Sharper</span>
+                        </Badge>
+                      )}
+
+                      {/* AI Verified */}
+                      {pair.aiVerified && (
+                        <Badge className="bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20 justify-start">
+                          <Bot className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">AI Verified</span>
+                        </Badge>
+                      )}
+
+                      {/* Timeline */}
+                      {pair.timestampDelta !== undefined && (
+                        <Badge variant="secondary" className="justify-start">
+                          <Clock className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">Timeline ✓</span>
+                        </Badge>
+                      )}
+                    </div>
+
                     {pair.aiReasoning && (
                       <p className="text-xs text-blue-700 dark:text-blue-400">
                         {pair.aiReasoning}
