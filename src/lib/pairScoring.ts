@@ -149,16 +149,31 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
       console.log(`  Scene Similarity: ${sceneSimilarity.toFixed(3)} (pHash)`);
       console.log(`  Color Similarity: ${colorSimilarity.toFixed(3)}`);
       console.log(`  Spatial Similarity: ${spatialSimilarity.toFixed(3)}`);
-      console.log(`  Combined Score: ${combinedSceneScore.toFixed(3)} (threshold: 0.50)`);
+      console.log(`  Combined Score: ${combinedSceneScore.toFixed(3)} (threshold: 0.65)`);
       
-      // DIAGNOSTIC: Lowered threshold to 0.50 to see more candidates
-      if (combinedSceneScore < 0.50) {
-        console.log(`  ❌ REJECTED: Below threshold`);
+      // Layer 1: Require minimum pHash scene similarity (structural match)
+      if (sceneSimilarity < 0.40) {
+        console.log(`  ❌ REJECTED: Scene similarity ${sceneSimilarity.toFixed(3)} below minimum 0.40`);
         pairsRejectedByThreshold++;
         continue;
       }
       
-      console.log(`  ✅ PASSED threshold, will evaluate improvements...`);
+      // Layer 2: Raise combined threshold to filter marginal candidates
+      if (combinedSceneScore < 0.65) {
+        console.log(`  ❌ REJECTED: Combined score below threshold`);
+        pairsRejectedByThreshold++;
+        continue;
+      }
+      
+      // Layer 3: Sanity check - flag suspicious pairs (very high scene but low color)
+      if (sceneSimilarity > 0.90 && colorSimilarity < 0.50) {
+        console.log(`  ⚠️ WARNING: Suspicious pair - high scene (${sceneSimilarity.toFixed(3)}) but low color (${colorSimilarity.toFixed(3)})`);
+        console.log(`  ❌ REJECTED: Failed sanity check`);
+        pairsRejectedByThreshold++;
+        continue;
+      }
+      
+      console.log(`  ✅ PASSED all filters, will evaluate improvements...`);
       pairsPassingThreshold++;
       
       const timestampDelta = getTimestampDelta(img1, img2);
@@ -282,8 +297,8 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
   
   console.log(`\n📈 === PRE-AI FILTERING SUMMARY ===`);
   console.log(`  Total pairs evaluated: ${totalPairsEvaluated}`);
-  console.log(`  Pairs passing threshold (≥0.50): ${pairsPassingThreshold}`);
-  console.log(`  Pairs rejected by threshold: ${pairsRejectedByThreshold}`);
+  console.log(`  Pairs passing filters (≥0.65 combined, ≥0.40 scene, sanity check): ${pairsPassingThreshold}`);
+  console.log(`  Pairs rejected by filters: ${pairsRejectedByThreshold}`);
   console.log(`  Candidates for AI verification: ${candidates.length}`);
   
   // Sort by score
@@ -333,20 +348,20 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
             }
           }
           
-          // Three-tier AI scoring system
+          // Layer 4: Stricter AI verification - three-tier system
           if (aiResult.match && aiResult.confidence >= 80) {
             // Tier 1: High confidence (80-100%) - boost score and upgrade to high
             const aiBoost = (aiResult.confidence / 100) * 0.15;
             candidate.totalScore = Math.min(1, candidate.totalScore + aiBoost);
             candidate.confidenceTier = 'high';
             console.log(`    ✅ Tier 1: Boosted score to ${candidate.totalScore.toFixed(2)}, upgraded to HIGH`);
-          } else if (aiResult.match && aiResult.confidence >= 70) {
-            // Tier 2: Medium confidence (70-79%) - keep original score and tier
+          } else if (aiResult.match && aiResult.confidence >= 75) {
+            // Tier 2: Medium confidence (75-79%) - keep original score and tier
             console.log(`    ✅ Tier 2: Kept original score ${candidate.totalScore.toFixed(2)}, tier: ${candidate.confidenceTier}`);
           } else {
-            // Tier 3: Low confidence (<70%) or no match - reject completely
+            // Tier 3: Low confidence (<75%) or no match - reject completely
             candidate.totalScore = 0;
-            console.log(`    ❌ Tier 3: REJECTED`);
+            console.log(`    ❌ Tier 3: REJECTED (confidence ${aiResult.confidence}% < 75% threshold)`);
           }
         } else {
           console.log(`    ⚠️ AI verification failed - keeping original score`);
