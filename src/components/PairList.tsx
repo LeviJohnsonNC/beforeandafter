@@ -70,7 +70,7 @@ export const PairList = () => {
       {isAnalyzing && (
         <div className="flex items-center gap-2 text-muted-foreground mb-4">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-          <span className="text-sm">🧠 Running computer vision analysis...</span>
+          <span className="text-sm">Analyzing scenes with AI...</span>
         </div>
       )}
 
