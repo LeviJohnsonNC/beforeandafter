@@ -1,54 +1,15 @@
 import { useRef, useEffect, useState } from 'react';
-import { SlidersHorizontal, Loader2 } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
-import { needsAlignment, alignImages } from '@/lib/imageAlignment';
-import { toast } from 'sonner';
 
 export const SlideRevealPreview = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [sliderPosition, setSliderPosition] = useState(5);
   const [isDragging, setIsDragging] = useState(false);
-  const [isAligning, setIsAligning] = useState(false);
-  const { images, selectedPair, branding, alignedImages, setAlignedImage } = useAppStore();
+  const { images, selectedPair, branding } = useAppStore();
 
   const beforeImg = images.find(img => img.id === selectedPair?.beforeId);
   const afterImg = images.find(img => img.id === selectedPair?.afterId);
-
-  // Auto-align images when pair changes
-  useEffect(() => {
-    const performAlignment = async () => {
-      if (!beforeImg || !afterImg || !selectedPair) return;
-      
-      // Check if alignment is needed
-      if (!needsAlignment(beforeImg, afterImg)) {
-        console.log('Images appear aligned, skipping AI alignment');
-        return;
-      }
-
-      // Check if we already have an aligned version
-      if (alignedImages.has(afterImg.id)) {
-        console.log('Using cached aligned image');
-        return;
-      }
-
-      // Perform alignment
-      setIsAligning(true);
-      toast.info('Aligning images for better comparison...');
-      
-      const alignedUrl = await alignImages(beforeImg, afterImg);
-      
-      if (alignedUrl) {
-        setAlignedImage(afterImg.id, alignedUrl);
-        toast.success('Images aligned successfully!');
-      } else {
-        toast.error('Could not align images, showing originals');
-      }
-      
-      setIsAligning(false);
-    };
-
-    performAlignment();
-  }, [beforeImg?.id, afterImg?.id, selectedPair?.beforeId, selectedPair?.afterId]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -90,9 +51,6 @@ export const SlideRevealPreview = () => {
 
   if (!beforeImg || !afterImg) return null;
 
-  // Get aligned version if available
-  const afterImgUrl = alignedImages.get(afterImg.id) || afterImg.objectUrl;
-
   const getContrastColor = (hexColor?: string): string => {
     if (!hexColor) return '#000000';
     const hex = hexColor.replace('#', '');
@@ -131,7 +89,7 @@ export const SlideRevealPreview = () => {
 
       {/* After Image (Clipped - reveals as you drag) */}
       <img
-        src={afterImgUrl}
+        src={afterImg.objectUrl}
         alt="After"
         className="absolute inset-0 w-full h-full object-cover"
         style={{
@@ -139,16 +97,6 @@ export const SlideRevealPreview = () => {
         }}
         draggable={false}
       />
-
-      {/* Alignment Loading Overlay */}
-      {isAligning && (
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <p className="text-sm font-medium">Aligning images...</p>
-          </div>
-        </div>
-      )}
 
       {/* Watermark */}
       {branding.logoUrl && (

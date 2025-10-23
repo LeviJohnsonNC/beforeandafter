@@ -7,7 +7,6 @@ interface AppStore {
   candidates: PairCandidate[];
   selectedPair: PairCandidate | null;
   branding: BrandingConfig;
-  alignedImages: Map<string, string>; // Map of image ID to aligned base64 URL
   
   addImages: (images: UploadedImage[]) => void;
   updateImage: (id: string, updates: Partial<UploadedImage>) => void;
@@ -16,7 +15,6 @@ interface AppStore {
   setCandidates: (candidates: PairCandidate[]) => void;
   setSelectedPair: (pair: PairCandidate | null) => void;
   updateBranding: (branding: Partial<BrandingConfig>) => void;
-  setAlignedImage: (imageId: string, alignedUrl: string) => void;
   reset: () => void;
 }
 
@@ -33,7 +31,6 @@ export const useAppStore = create<AppStore>((set) => ({
   candidates: [],
   selectedPair: null,
   branding: defaultBranding,
-  alignedImages: new Map(),
 
   addImages: (images) => set((state) => ({
     images: [...state.images, ...images]
@@ -59,18 +56,11 @@ export const useAppStore = create<AppStore>((set) => ({
     branding: { ...state.branding, ...branding }
   })),
 
-  setAlignedImage: (imageId, alignedUrl) => set((state) => {
-    const newAlignedImages = new Map(state.alignedImages);
-    newAlignedImages.set(imageId, alignedUrl);
-    return { alignedImages: newAlignedImages };
-  }),
-
   reset: () => set({
     images: [],
     isProcessing: false,
     candidates: [],
     selectedPair: null,
     branding: defaultBranding,
-    alignedImages: new Map(),
   }),
 }));
