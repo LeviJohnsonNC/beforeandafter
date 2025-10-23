@@ -1,4 +1,4 @@
-import { AlignCenterHorizontal, AlignLeft, AlignRight, SlidersHorizontal } from 'lucide-react';
+import { Columns2, PanelLeft, PanelRight, SlidersHorizontal } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
@@ -30,39 +30,39 @@ export const LayoutControls = () => {
           onValueChange={(value) => {
             if (value) updateBranding({ layout: value as typeof branding.layout });
           }}
-          className="justify-start gap-2"
+          className="justify-start gap-2 flex-wrap"
         >
           <ToggleGroupItem
             value="equal"
             aria-label="Equal size"
-            className="flex items-center gap-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            className="flex items-center gap-1.5 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
           >
-            <AlignCenterHorizontal className="w-4 h-4" />
-            <span>Equal</span>
+            <Columns2 className="w-4 h-4" />
+            <span className="text-sm">Equal</span>
           </ToggleGroupItem>
           <ToggleGroupItem
             value="before-larger"
             aria-label="Before image larger"
-            className="flex items-center gap-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            className="flex items-center gap-1.5 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
           >
-            <AlignLeft className="w-4 h-4" />
-            <span>Before Larger</span>
+            <PanelLeft className="w-4 h-4" />
+            <span className="text-sm">Before Larger</span>
           </ToggleGroupItem>
           <ToggleGroupItem
             value="after-larger"
             aria-label="After image larger"
-            className="flex items-center gap-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            className="flex items-center gap-1.5 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
           >
-            <AlignRight className="w-4 h-4" />
-            <span>After Larger</span>
+            <PanelRight className="w-4 h-4" />
+            <span className="text-sm">After Larger</span>
           </ToggleGroupItem>
           <ToggleGroupItem
             value="slide-reveal"
             aria-label="Slide reveal comparison"
-            className="flex items-center gap-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            className="flex items-center gap-1.5 px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
           >
             <SlidersHorizontal className="w-4 h-4" />
-            <span>Slide Reveal</span>
+            <span className="text-sm">Slide Reveal</span>
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
