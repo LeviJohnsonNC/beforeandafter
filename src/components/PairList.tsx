@@ -171,15 +171,32 @@ export const PairList = () => {
 
                       {/* Confidence bar */}
                       <div className="mb-3">
-                        <div className="flex items-center justify-between text-xs mb-1">
-                          <span className="text-muted-foreground">Confidence</span>
-                          <span className="font-medium">
+                        <div className="flex items-center justify-between text-xs mb-1.5">
+                          <span className="font-semibold text-foreground/80">Confidence</span>
+                          <span className={`text-sm font-bold ${
+                            pair.totalScore >= 0.9 
+                              ? 'text-green-600 dark:text-green-400' 
+                              : pair.totalScore >= 0.8 
+                              ? 'text-primary' 
+                              : pair.totalScore >= 0.6
+                              ? 'text-blue-600 dark:text-blue-400'
+                              : 'text-amber-600 dark:text-amber-400'
+                          }`}>
                             {(pair.totalScore * 100).toFixed(0)}%
                           </span>
                         </div>
                         <Progress 
                           value={pair.totalScore * 100} 
-                          className="h-2"
+                          variant={
+                            pair.totalScore >= 0.9 
+                              ? 'success' 
+                              : pair.totalScore >= 0.8 
+                              ? 'default' 
+                              : pair.totalScore >= 0.6
+                              ? 'info'
+                              : 'warning'
+                          }
+                          className="h-3"
                         />
                       </div>
 
