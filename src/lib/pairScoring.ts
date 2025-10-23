@@ -162,8 +162,8 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
       }
       
       // Reject if high color similarity is masking weak scene match
-      if (colorSimilarity > 0.85 && sceneSimilarity < 0.65) {
-        console.log(`  ❌ REJECTED: High color (${colorSimilarity.toFixed(3)}) masking weak scene (${sceneSimilarity.toFixed(3)} < 0.65)`);
+      if (colorSimilarity > 0.85 && sceneSimilarity < 0.50) {
+        console.log(`  ❌ REJECTED: High color (${colorSimilarity.toFixed(3)}) masking weak scene (${sceneSimilarity.toFixed(3)} < 0.50)`);
         pairsRejectedByThreshold++;
         continue;
       }
