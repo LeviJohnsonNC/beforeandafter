@@ -197,8 +197,8 @@ function computeColorHistogram(imageData: ImageData): number[] {
     histogram[hBins + sBins + Math.min(vBin, vBins - 1)]++;
   }
   
-  // Normalize histogram
-  const total = data.length / 4;
+  // Normalize histogram (divide by 3 since we increment 3 bins per pixel)
+  const total = (data.length / 4) * 3;
   return histogram.map(count => count / total);
 }
 

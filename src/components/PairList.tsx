@@ -49,7 +49,7 @@ export const PairList = () => {
     <Card className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <h2 className="text-xl font-semibold">AI Picks (Top {candidates.length})</h2>
+          <h2 className="text-xl font-semibold">Before / After Matches (Top {candidates.length})</h2>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -59,8 +59,7 @@ export const PairList = () => {
               </TooltipTrigger>
               <TooltipContent>
                 <p className="text-sm max-w-xs">
-                  Pairs are scored using perceptual hashing, color histograms, and spatial analysis.
-                  Uncertain pairs are verified by AI vision to ensure they show the same location.
+                  Pairs are identified using a multi-stage computer vision pipeline: (1) 256-bit perceptual hashing with DCT for scene matching, (2) HSV histogram analysis across 162 color bins, and (3) spatial analysis using brightness and entropy metrics. The algorithm weights structural similarity (60%), color (30%), and spatial features (10%). Quality assessment uses Laplacian edge detection for sharpness and ITU-R BT.601 for luminance. High-scoring candidates are verified by Google's Gemini 2.5 Flash vision model, with a three-tier confidence system (80%+ high, 70-79% medium, &lt;70% rejected).
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -71,7 +70,7 @@ export const PairList = () => {
       {isAnalyzing && (
         <div className="flex items-center gap-2 text-muted-foreground mb-4">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-          <span className="text-sm">Analyzing scenes with AI...</span>
+          <span className="text-sm">🧠 Running computer vision analysis...</span>
         </div>
       )}
 
@@ -123,9 +122,6 @@ export const PairList = () => {
                       <span className="absolute bottom-1 left-1 px-2 py-0.5 bg-black/70 text-white text-xs rounded">
                         Before
                       </span>
-                      <div className="absolute top-1 left-1 px-1 py-0.5 bg-black/50 text-white text-[10px] rounded max-w-[72px] truncate">
-                        {beforeImg.file.name}
-                      </div>
                     </div>
                     <div className="relative">
                       <img
@@ -136,9 +132,6 @@ export const PairList = () => {
                       <span className="absolute bottom-1 left-1 px-2 py-0.5 bg-black/70 text-white text-xs rounded">
                         After
                       </span>
-                      <div className="absolute top-1 left-1 px-1 py-0.5 bg-black/50 text-white text-[10px] rounded max-w-[72px] truncate">
-                        {afterImg.file.name}
-                      </div>
                     </div>
                   </div>
 
@@ -157,11 +150,6 @@ export const PairList = () => {
                         {pair.confidenceTier === 'medium' && (
                           <Badge variant="secondary">
                             Medium
-                          </Badge>
-                        )}
-                        {pair.aiVerified && (
-                          <Badge variant="default" className="bg-blue-600">
-                            AI Verified ✓
                           </Badge>
                         )}
                       </div>
@@ -194,7 +182,7 @@ export const PairList = () => {
                       ))}
                       {pair.aiReasoning && (
                         <li className="text-xs text-blue-700 dark:text-blue-400 flex items-start mt-2">
-                          <span className="mr-2">🤖</span>
+                          <span className="mr-2">•</span>
                           <span>{pair.aiReasoning}</span>
                         </li>
                       )}

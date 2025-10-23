@@ -6,8 +6,10 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Separator } from './ui/separator';
 import { toast } from 'sonner';
 import { WatermarkPosition } from '@/types';
+import { LayoutControls } from './LayoutControls';
 
 export const BrandingPanel = () => {
   const { branding, updateBranding } = useAppStore();
@@ -123,6 +125,11 @@ export const BrandingPanel = () => {
             className="mt-2"
           />
         </div>
+
+        <Separator />
+
+        {/* Layout Controls */}
+        <LayoutControls />
       </div>
     </Card>
   );
