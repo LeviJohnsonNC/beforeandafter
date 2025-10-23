@@ -4,7 +4,7 @@ import { useAppStore } from '@/store/useAppStore';
 
 export const SlideRevealPreview = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [sliderPosition, setSliderPosition] = useState(50);
+  const [sliderPosition, setSliderPosition] = useState(5);
   const [isDragging, setIsDragging] = useState(false);
   const { images, selectedPair, branding } = useAppStore();
 
