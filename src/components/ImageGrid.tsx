@@ -35,7 +35,7 @@ export const ImageGrid = () => {
 
           {img.metrics && (
             <div className="p-2 space-y-1">
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-nowrap gap-1 justify-center">
                 <Badge variant="secondary" className="text-xs">
                   <Zap className="w-3 h-3 mr-1" />
                   {(img.metrics.sharpness * 100).toFixed(0)}
