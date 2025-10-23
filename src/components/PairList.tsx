@@ -194,7 +194,7 @@ export const PairList = () => {
                         ) : (
                           <Badge variant="outline" className="justify-start">
                             <ScanEye className="w-3 h-3 mr-1.5 flex-shrink-0 opacity-70" />
-                            <span className="truncate">Scene {(pair.sceneSimilarity * 100).toFixed(0)}%</span>
+                            <span className="truncate">Scene</span>
                           </Badge>
                         )}
 
@@ -215,7 +215,7 @@ export const PairList = () => {
                         {pair.entropyDrop > 0 && (
                           <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 justify-start">
                             <Sparkles className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                            <span className="truncate">Cleaner {pair.entropyDrop.toFixed(2)}</span>
+                            <span className="truncate">Cleaner</span>
                           </Badge>
                         )}
 
@@ -231,7 +231,7 @@ export const PairList = () => {
                         {pair.sharpnessIncrease > 0 && (
                           <Badge className="bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/20 justify-start">
                             <Focus className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                            <span className="truncate">Sharper +{pair.sharpnessIncrease.toFixed(2)}</span>
+                            <span className="truncate">Sharper</span>
                           </Badge>
                         )}
 
