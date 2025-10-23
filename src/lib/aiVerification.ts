@@ -1,4 +1,5 @@
 import { UploadedImage } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
 
 async function imageToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -57,26 +58,16 @@ export async function verifySceneMatch(
     const image1Base64 = await imageToBase64(img1.file);
     const image2Base64 = await imageToBase64(img2.file);
 
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-scene-match`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ image1Base64, image2Base64 }),
-      }
-    );
+    const { data, error } = await supabase.functions.invoke('verify-scene-match', {
+      body: { image1Base64, image2Base64 },
+    });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI verification failed:', response.status, errorText);
+    if (error) {
+      console.error('AI verification failed:', error);
       return null;
     }
 
-    const result = await response.json();
-    return result;
+    return data;
   } catch (error) {
     console.error('Error verifying scene match:', error);
     return null;
