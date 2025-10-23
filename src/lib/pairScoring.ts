@@ -135,45 +135,8 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
       totalPairsEvaluated++;
       
       const sceneSimilarity = computeSceneSimilarity(img1, img2);
-      
-      // Early rejection for obvious mismatches (>90% of bits different)
-      if (sceneSimilarity < 0.10) {
-        console.log(`\n📊 Pair ${totalPairsEvaluated}: "${img1.file.name}" vs "${img2.file.name}"`);
-        console.log(`  Scene Similarity: ${sceneSimilarity.toFixed(3)} - ❌ REJECTED: Too dissimilar (< 0.10 early rejection)`);
-        pairsRejectedByThreshold++;
-        continue;
-      }
-      
       const colorSimilarity = computeColorSimilarity(img1, img2);
       const spatialSimilarity = computeSpatialSimilarity(img1, img2);
-      
-      console.log(`\n📊 Pair ${totalPairsEvaluated}: "${img1.file.name}" vs "${img2.file.name}"`);
-      console.log(`  IDs: ${img1.id} vs ${img2.id}`);
-      console.log(`  Scene Similarity: ${sceneSimilarity.toFixed(3)} (pHash)`);
-      console.log(`  Color Similarity: ${colorSimilarity.toFixed(3)}`);
-      console.log(`  Spatial Similarity: ${spatialSimilarity.toFixed(3)}`);
-      
-      // MULTI-LAYERED DEFENSE: Individual component thresholds
-      // Reject if scene structure is too weak (prevents false positives)
-      if (sceneSimilarity < 0.35) {
-        console.log(`  ❌ REJECTED: Scene similarity too low (${sceneSimilarity.toFixed(3)} < 0.35)`);
-        pairsRejectedByThreshold++;
-        continue;
-      }
-      
-      // Reject if high color similarity is masking weak scene match
-      if (colorSimilarity > 0.85 && sceneSimilarity < 0.50) {
-        console.log(`  ❌ REJECTED: High color (${colorSimilarity.toFixed(3)}) masking weak scene (${sceneSimilarity.toFixed(3)} < 0.50)`);
-        pairsRejectedByThreshold++;
-        continue;
-      }
-      
-      // Reject if spatial layout doesn't make sense with weak scene match
-      if (spatialSimilarity < 0.40 && sceneSimilarity < 0.70) {
-        console.log(`  ❌ REJECTED: Poor spatial match (${spatialSimilarity.toFixed(3)} < 0.40) with weak scene (${sceneSimilarity.toFixed(3)} < 0.70)`);
-        pairsRejectedByThreshold++;
-        continue;
-      }
       
       // Combined scene matching score (structure + color + spatial)
       const combinedSceneScore = 
@@ -181,9 +144,14 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
         0.30 * colorSimilarity +
         0.10 * spatialSimilarity;
       
+      console.log(`\n📊 Pair ${totalPairsEvaluated}: "${img1.file.name}" vs "${img2.file.name}"`);
+      console.log(`  IDs: ${img1.id} vs ${img2.id}`);
+      console.log(`  Scene Similarity: ${sceneSimilarity.toFixed(3)} (pHash)`);
+      console.log(`  Color Similarity: ${colorSimilarity.toFixed(3)}`);
+      console.log(`  Spatial Similarity: ${spatialSimilarity.toFixed(3)}`);
       console.log(`  Combined Score: ${combinedSceneScore.toFixed(3)} (threshold: 0.50)`);
       
-      // Stricter combined threshold to reduce false positives
+      // DIAGNOSTIC: Lowered threshold to 0.50 to see more candidates
       if (combinedSceneScore < 0.50) {
         console.log(`  ❌ REJECTED: Below threshold`);
         pairsRejectedByThreshold++;
@@ -314,7 +282,7 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
   
   console.log(`\n📈 === PRE-AI FILTERING SUMMARY ===`);
   console.log(`  Total pairs evaluated: ${totalPairsEvaluated}`);
-  console.log(`  Pairs passing threshold (≥0.55): ${pairsPassingThreshold}`);
+  console.log(`  Pairs passing threshold (≥0.50): ${pairsPassingThreshold}`);
   console.log(`  Pairs rejected by threshold: ${pairsRejectedByThreshold}`);
   console.log(`  Candidates for AI verification: ${candidates.length}`);
   
@@ -328,11 +296,11 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
   }
   
   console.log(`\n🤖 === AI VERIFICATION PHASE ===`);
-  console.log(`  Sending top ${Math.min(15, sortedCandidates.length)} candidates to AI for verification`);
+  console.log(`  Sending top ${Math.min(6, sortedCandidates.length)} candidates to AI for verification`);
   
-  // MANDATORY AI verification for top 10-12 candidates (hybrid approach)
+  // MANDATORY AI verification for ALL top candidates (not just medium confidence)
   const verifiedCandidates = await Promise.all(
-    sortedCandidates.slice(0, 15).map(async (candidate, idx) => {
+    sortedCandidates.slice(0, 6).map(async (candidate, idx) => {
       // Verify ALL top 6 candidates regardless of confidence tier
       const beforeImg = images.find(img => img.id === candidate.beforeId);
       const afterImg = images.find(img => img.id === candidate.afterId);
@@ -381,9 +349,7 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
             console.log(`    ❌ Tier 3: REJECTED`);
           }
         } else {
-          // AI verification failed - reject pair to be safe
-          candidate.totalScore = 0;
-          console.log(`    ❌ AI verification failed - REJECTING pair for safety`);
+          console.log(`    ⚠️ AI verification failed - keeping original score`);
         }
       }
       
