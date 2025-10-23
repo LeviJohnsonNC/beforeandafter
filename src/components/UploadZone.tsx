@@ -117,7 +117,7 @@ export const UploadZone = () => {
         >
           <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
           <p className="text-lg font-medium mb-2">
-            Drop your job photos here (2–50)
+            Drop your job photos here
           </p>
           <p className="text-sm text-muted-foreground mb-6">
             We'll detect the best before/after pair
