@@ -4,6 +4,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
+import { SlideRevealPreview } from './SlideRevealPreview';
 
 export const PreviewCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -24,8 +25,23 @@ export const PreviewCanvas = () => {
   const calculateDimensions = (
     beforeImg: HTMLImageElement,
     afterImg: HTMLImageElement,
-    layout: 'equal' | 'before-larger' | 'after-larger'
+    layout: 'equal' | 'before-larger' | 'after-larger' | 'slide-reveal'
   ) => {
+    // Slide reveal uses different rendering
+    if (layout === 'slide-reveal') {
+      const targetHeight = 600;
+      const aspect = 16 / 9;
+      const canvasWidth = Math.round(targetHeight * aspect);
+      return {
+        beforeWidth: canvasWidth,
+        afterWidth: canvasWidth,
+        beforeHeight: targetHeight,
+        afterHeight: targetHeight,
+        canvasWidth,
+        canvasHeight: targetHeight,
+        gutter: 0,
+      };
+    }
     const targetHeight = 600;
     const gutter = 16;
     const beforeAspect = beforeImg.width / beforeImg.height;
@@ -119,8 +135,42 @@ export const PreviewCanvas = () => {
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // For unequal layouts, use crop-to-fill approach to eliminate whitespace
-    if (branding.layout !== 'equal') {
+    // Slide reveal layout - render at 50% position
+    if (branding.layout === 'slide-reveal') {
+      const sliderPosition = 0.5; // 50% reveal
+      
+      // Draw before image (full)
+      ctx.drawImage(beforeImg, 0, 0, canvasWidth, canvasHeight);
+      
+      // Draw after image (clipped)
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, 0, canvasWidth * sliderPosition, canvasHeight);
+      ctx.clip();
+      ctx.drawImage(afterImg, 0, 0, canvasWidth, canvasHeight);
+      ctx.restore();
+      
+      // Draw slider divider
+      const dividerX = canvasWidth * sliderPosition;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(dividerX, 0);
+      ctx.lineTo(dividerX, canvasHeight);
+      ctx.stroke();
+      
+      // Draw slider handle
+      const handleY = canvasHeight / 2;
+      const handleRadius = 20;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(dividerX, handleY, handleRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    } else if (branding.layout !== 'equal') {
+      // For unequal layouts, use crop-to-fill approach to eliminate whitespace
       // Draw before image
       if (beforeHeight < canvasHeight) {
         // Scale up and crop to fill height
@@ -162,8 +212,13 @@ export const PreviewCanvas = () => {
 
     // Draw labels if enabled
     if (branding.showLabels) {
-      drawLabel(ctx, 'Before', 20, 30, canvasHeight, branding.dominantColor);
-      drawLabel(ctx, 'After', beforeWidth + gutter + 20, 30, canvasHeight, branding.dominantColor);
+      if (branding.layout === 'slide-reveal') {
+        drawLabel(ctx, 'Before', 20, 30, canvasHeight, branding.dominantColor);
+        drawLabel(ctx, 'After', canvasWidth - 140, 30, canvasHeight, branding.dominantColor);
+      } else {
+        drawLabel(ctx, 'Before', 20, 30, canvasHeight, branding.dominantColor);
+        drawLabel(ctx, 'After', beforeWidth + gutter + 20, 30, canvasHeight, branding.dominantColor);
+      }
     }
 
     // Draw watermark if logo exists
@@ -404,10 +459,14 @@ export const PreviewCanvas = () => {
       </div>
 
       <div className="rounded-xl overflow-hidden border border-border bg-muted shadow-lg">
-        <canvas 
-          ref={canvasRef}
-          className="w-full h-auto"
-        />
+        {branding.layout === 'slide-reveal' ? (
+          <SlideRevealPreview />
+        ) : (
+          <canvas 
+            ref={canvasRef}
+            className="w-full h-auto"
+          />
+        )}
       </div>
 
       <p className="text-center text-sm text-muted-foreground mt-4">

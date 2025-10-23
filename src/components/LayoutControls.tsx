@@ -1,4 +1,4 @@
-import { AlignCenterHorizontal, AlignLeft, AlignRight } from 'lucide-react';
+import { AlignCenterHorizontal, AlignLeft, AlignRight, SlidersHorizontal } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
@@ -55,6 +55,14 @@ export const LayoutControls = () => {
           >
             <AlignRight className="w-4 h-4" />
             <span>After Larger</span>
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            value="slide-reveal"
+            aria-label="Slide reveal comparison"
+            className="flex items-center gap-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            <span>Slide Reveal</span>
           </ToggleGroupItem>
         </ToggleGroup>
       </div>

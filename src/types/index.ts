@@ -39,7 +39,7 @@ export type BrandingConfig = {
   watermarkPosition: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   caption?: string;
   showLabels: boolean;
-  layout: 'equal' | 'before-larger' | 'after-larger';
+  layout: 'equal' | 'before-larger' | 'after-larger' | 'slide-reveal';
 };
 
 export type WatermarkPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
