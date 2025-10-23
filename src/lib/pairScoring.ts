@@ -147,21 +147,44 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
       const colorSimilarity = computeColorSimilarity(img1, img2);
       const spatialSimilarity = computeSpatialSimilarity(img1, img2);
       
+      console.log(`\n📊 Pair ${totalPairsEvaluated}: "${img1.file.name}" vs "${img2.file.name}"`);
+      console.log(`  IDs: ${img1.id} vs ${img2.id}`);
+      console.log(`  Scene Similarity: ${sceneSimilarity.toFixed(3)} (pHash)`);
+      console.log(`  Color Similarity: ${colorSimilarity.toFixed(3)}`);
+      console.log(`  Spatial Similarity: ${spatialSimilarity.toFixed(3)}`);
+      
+      // MULTI-LAYERED DEFENSE: Individual component thresholds
+      // Reject if scene structure is too weak (prevents false positives)
+      if (sceneSimilarity < 0.55) {
+        console.log(`  ❌ REJECTED: Scene similarity too low (${sceneSimilarity.toFixed(3)} < 0.55)`);
+        pairsRejectedByThreshold++;
+        continue;
+      }
+      
+      // Reject if high color similarity is masking weak scene match
+      if (colorSimilarity > 0.85 && sceneSimilarity < 0.65) {
+        console.log(`  ❌ REJECTED: High color (${colorSimilarity.toFixed(3)}) masking weak scene (${sceneSimilarity.toFixed(3)} < 0.65)`);
+        pairsRejectedByThreshold++;
+        continue;
+      }
+      
+      // Reject if spatial layout doesn't make sense with weak scene match
+      if (spatialSimilarity < 0.40 && sceneSimilarity < 0.70) {
+        console.log(`  ❌ REJECTED: Poor spatial match (${spatialSimilarity.toFixed(3)} < 0.40) with weak scene (${sceneSimilarity.toFixed(3)} < 0.70)`);
+        pairsRejectedByThreshold++;
+        continue;
+      }
+      
       // Combined scene matching score (structure + color + spatial)
       const combinedSceneScore = 
         0.60 * sceneSimilarity +
         0.30 * colorSimilarity +
         0.10 * spatialSimilarity;
       
-      console.log(`\n📊 Pair ${totalPairsEvaluated}: "${img1.file.name}" vs "${img2.file.name}"`);
-      console.log(`  IDs: ${img1.id} vs ${img2.id}`);
-      console.log(`  Scene Similarity: ${sceneSimilarity.toFixed(3)} (pHash)`);
-      console.log(`  Color Similarity: ${colorSimilarity.toFixed(3)}`);
-      console.log(`  Spatial Similarity: ${spatialSimilarity.toFixed(3)}`);
-      console.log(`  Combined Score: ${combinedSceneScore.toFixed(3)} (threshold: 0.60)`);
+      console.log(`  Combined Score: ${combinedSceneScore.toFixed(3)} (threshold: 0.65)`);
       
-      // Hybrid approach: Stricter threshold to reduce false positives
-      if (combinedSceneScore < 0.60) {
+      // Stricter combined threshold to reduce false positives
+      if (combinedSceneScore < 0.65) {
         console.log(`  ❌ REJECTED: Below threshold`);
         pairsRejectedByThreshold++;
         continue;
@@ -291,7 +314,7 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
   
   console.log(`\n📈 === PRE-AI FILTERING SUMMARY ===`);
   console.log(`  Total pairs evaluated: ${totalPairsEvaluated}`);
-  console.log(`  Pairs passing threshold (≥0.60): ${pairsPassingThreshold}`);
+  console.log(`  Pairs passing threshold (≥0.65): ${pairsPassingThreshold}`);
   console.log(`  Pairs rejected by threshold: ${pairsRejectedByThreshold}`);
   console.log(`  Candidates for AI verification: ${candidates.length}`);
   
@@ -358,7 +381,9 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
             console.log(`    ❌ Tier 3: REJECTED`);
           }
         } else {
-          console.log(`    ⚠️ AI verification failed - keeping original score`);
+          // AI verification failed - reject pair to be safe
+          candidate.totalScore = 0;
+          console.log(`    ❌ AI verification failed - REJECTING pair for safety`);
         }
       }
       
