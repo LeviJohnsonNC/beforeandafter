@@ -79,18 +79,18 @@ export const SlideRevealPreview = () => {
         cursor: isDragging ? 'col-resize' : 'default'
       }}
     >
-      {/* After Image (Background - fully visible) */}
+      {/* Before Image (Background - fully visible) */}
       <img
-        src={afterImg.objectUrl}
-        alt="After"
+        src={beforeImg.objectUrl}
+        alt="Before"
         className="absolute inset-0 w-full h-full object-cover"
         draggable={false}
       />
 
-      {/* Before Image (Clipped - reveals as you drag) */}
+      {/* After Image (Clipped - reveals as you drag) */}
       <img
-        src={beforeImg.objectUrl}
-        alt="Before"
+        src={afterImg.objectUrl}
+        alt="After"
         className="absolute inset-0 w-full h-full object-cover"
         style={{
           clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`

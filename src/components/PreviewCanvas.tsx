@@ -139,15 +139,15 @@ export const PreviewCanvas = () => {
     if (branding.layout === 'slide-reveal') {
       const sliderPosition = 0.5; // 50% reveal
       
-      // Draw after image (full background)
-      ctx.drawImage(afterImg, 0, 0, canvasWidth, canvasHeight);
+      // Draw before image (full background)
+      ctx.drawImage(beforeImg, 0, 0, canvasWidth, canvasHeight);
       
-      // Draw before image (clipped)
+      // Draw after image (clipped)
       ctx.save();
       ctx.beginPath();
       ctx.rect(0, 0, canvasWidth * sliderPosition, canvasHeight);
       ctx.clip();
-      ctx.drawImage(beforeImg, 0, 0, canvasWidth, canvasHeight);
+      ctx.drawImage(afterImg, 0, 0, canvasWidth, canvasHeight);
       ctx.restore();
       
       // Draw slider divider
