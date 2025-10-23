@@ -27,11 +27,18 @@ function computeColorSimilarity(img1: UploadedImage, img2: UploadedImage): numbe
   
   // Compute histogram intersection (similarity measure)
   let intersection = 0;
+  let sum1 = 0;
+  let sum2 = 0;
+  
   for (let i = 0; i < hist1.length; i++) {
     intersection += Math.min(hist1[i], hist2[i]);
+    sum1 += hist1[i];
+    sum2 += hist2[i];
   }
   
-  return intersection; // Already normalized 0..1
+  // Normalize by average histogram sum to get 0..1 range
+  const normalizationFactor = (sum1 + sum2) / 2;
+  return normalizationFactor > 0 ? intersection / normalizationFactor : 0;
 }
 
 function computeSpatialSimilarity(img1: UploadedImage, img2: UploadedImage): number {
