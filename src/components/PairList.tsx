@@ -220,138 +220,73 @@ export const PairList = () => {
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-2 pl-4">
                     {/* Enhanced Metrics Grid */}
-                    <TooltipProvider>
-                      <div className="grid grid-cols-2 gap-2 mb-3">
-                        {/* Scene Match */}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            {pair.sceneSimilarity >= 1.0 ? (
-                              <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 justify-start cursor-help">
-                                <CheckCircle2 className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                                <span className="truncate">Scene Match</span>
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="justify-start cursor-help">
-                                <ScanEye className="w-3 h-3 mr-1.5 flex-shrink-0 opacity-70" />
-                                <span className="truncate">Scene</span>
-                              </Badge>
-                            )}
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-xs max-w-xs">
-                              Scene similarity via 256-bit perceptual hashing (pHash). Compares structural layout using DCT transformation with Hamming distance.
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      {/* Scene Match */}
+                      {pair.sceneSimilarity >= 1.0 ? (
+                        <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 justify-start">
+                          <CheckCircle2 className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">Scene Match</span>
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="justify-start">
+                          <ScanEye className="w-3 h-3 mr-1.5 flex-shrink-0 opacity-70" />
+                          <span className="truncate">Scene</span>
+                        </Badge>
+                      )}
 
-                        {/* Color Match */}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            {pair.colorSimilarity >= 1.0 ? (
-                              <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 justify-start cursor-help">
-                                <CheckCircle2 className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                                <span className="truncate">Color Match</span>
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="justify-start cursor-help">
-                                <Palette className="w-3 h-3 mr-1.5 flex-shrink-0 opacity-70" />
-                                <span className="truncate">Color {(pair.colorSimilarity * 100).toFixed(0)}%</span>
-                              </Badge>
-                            )}
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-xs max-w-xs">
-                              Color similarity via HSV histogram intersection across 162 bins (18H × 3S × 3V). Measures color palette consistency.
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
+                      {/* Color Match */}
+                      {pair.colorSimilarity >= 1.0 ? (
+                        <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 justify-start">
+                          <CheckCircle2 className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">Color Match</span>
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="justify-start">
+                          <Palette className="w-3 h-3 mr-1.5 flex-shrink-0 opacity-70" />
+                          <span className="truncate">Color {(pair.colorSimilarity * 100).toFixed(0)}%</span>
+                        </Badge>
+                      )}
 
-                        {/* Clutter Reduction */}
-                        {pair.entropyDrop > 0 && (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 justify-start cursor-help">
-                                <Sparkles className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                                <span className="truncate">Cleaner</span>
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-xs max-w-xs">
-                                Clutter reduction detected via Shannon entropy decrease. Lower entropy means less visual noise and cleaner composition.
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
+                      {/* Clutter Reduction */}
+                      {pair.entropyDrop > 0 && (
+                        <Badge className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20 justify-start">
+                          <Sparkles className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">Cleaner</span>
+                        </Badge>
+                      )}
 
-                        {/* Brightness Increase */}
-                        {pair.brightnessIncrease > 0 && (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge className="bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 justify-start cursor-help">
-                                <Sun className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                                <span className="truncate">Brighter +{pair.brightnessIncrease.toFixed(2)}</span>
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-xs max-w-xs">
-                                Luminance improvement measured using ITU-R BT.601 standard (Y = 0.299R + 0.587G + 0.114B). Positive values indicate better exposure.
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
+                      {/* Brightness Increase */}
+                      {pair.brightnessIncrease > 0 && (
+                        <Badge className="bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 justify-start">
+                          <Sun className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">Brighter +{pair.brightnessIncrease.toFixed(2)}</span>
+                        </Badge>
+                      )}
 
-                        {/* Sharpness Increase */}
-                        {pair.sharpnessIncrease > 0 && (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge className="bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/20 justify-start cursor-help">
-                                <Focus className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                                <span className="truncate">Sharper</span>
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-xs max-w-xs">
-                                Edge clarity measured via Laplacian variance operator. Higher values indicate better focus and detail definition.
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
+                      {/* Sharpness Increase */}
+                      {pair.sharpnessIncrease > 0 && (
+                        <Badge className="bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/20 justify-start">
+                          <Focus className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">Sharper</span>
+                        </Badge>
+                      )}
 
-                        {/* AI Verified */}
-                        {pair.aiVerified && (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge className="bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20 justify-start cursor-help">
-                                <Bot className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                                <span className="truncate">AI Verified</span>
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-xs max-w-xs">
-                                Scene match confirmed by Gemini 2.5 Flash vision model. AI verified both images show the same location/subject.
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
+                      {/* AI Verified */}
+                      {pair.aiVerified && (
+                        <Badge className="bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20 justify-start">
+                          <Bot className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">AI Verified</span>
+                        </Badge>
+                      )}
 
-                        {/* Timeline */}
-                        {pair.timestampDelta !== undefined && (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge variant="secondary" className="justify-start cursor-help">
-                                <Clock className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                                <span className="truncate">Timeline ✓</span>
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-xs max-w-xs">
-                                Chronological ordering confirmed via EXIF timestamps. Photos taken {Math.abs(pair.timestampDelta)} seconds apart.
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
-                      </div>
-                    </TooltipProvider>
+                      {/* Timeline */}
+                      {pair.timestampDelta !== undefined && (
+                        <Badge variant="secondary" className="justify-start">
+                          <Clock className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                          <span className="truncate">Timeline ✓</span>
+                        </Badge>
+                      )}
+                    </div>
 
                     {pair.aiReasoning && (
                       <p className="text-xs text-blue-700 dark:text-blue-400">
