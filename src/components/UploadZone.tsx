@@ -1,11 +1,10 @@
 import { useCallback, useState } from 'react';
-import { Upload, X, RotateCcw, Sparkles } from 'lucide-react';
+import { Upload, X, RotateCcw } from 'lucide-react';
 import { nanoid } from 'nanoid';
 import { useAppStore } from '@/store/useAppStore';
 import { UploadedImage } from '@/types';
 import { computeImageMetrics, normalizeMetrics } from '@/lib/imageMetrics';
 import { extractExifDate } from '@/lib/exif';
-import { loadDemoImages } from '@/lib/demoImages';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { toast } from 'sonner';
@@ -96,17 +95,6 @@ export const UploadZone = () => {
     processFiles(files);
   }, [processFiles]);
 
-  const handleLoadDemo = useCallback(async () => {
-    toast.info('Loading demo images...');
-    try {
-      const demoFiles = await loadDemoImages();
-      await processFiles(demoFiles);
-    } catch (error) {
-      console.error('Failed to load demo images:', error);
-      toast.error('Failed to load demo images');
-    }
-  }, [processFiles]);
-
   return (
     <Card className="p-8">
       <h2 className="text-xl font-semibold mb-4">Upload Photos</h2>
@@ -134,24 +122,18 @@ export const UploadZone = () => {
           <p className="text-sm text-muted-foreground mb-6">
             We'll detect the best before/after pair
           </p>
-          <div className="flex gap-3 justify-center">
-            <Button asChild>
-              <label className="cursor-pointer">
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                Choose Files
-              </label>
-            </Button>
-            <Button variant="outline" onClick={handleLoadDemo}>
-              <Sparkles className="w-4 h-4 mr-2" />
-              Try Demo
-            </Button>
-          </div>
+          <Button asChild>
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              Choose Files
+            </label>
+          </Button>
         </div>
       ) : (
         <div>
