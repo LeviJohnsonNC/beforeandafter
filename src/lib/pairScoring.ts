@@ -135,6 +135,15 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
       totalPairsEvaluated++;
       
       const sceneSimilarity = computeSceneSimilarity(img1, img2);
+      
+      // Early rejection for obvious mismatches (>80% of bits different)
+      if (sceneSimilarity < 0.20) {
+        console.log(`\n📊 Pair ${totalPairsEvaluated}: "${img1.file.name}" vs "${img2.file.name}"`);
+        console.log(`  Scene Similarity: ${sceneSimilarity.toFixed(3)} - ❌ REJECTED: Too dissimilar (early rejection)`);
+        pairsRejectedByThreshold++;
+        continue;
+      }
+      
       const colorSimilarity = computeColorSimilarity(img1, img2);
       const spatialSimilarity = computeSpatialSimilarity(img1, img2);
       
@@ -149,10 +158,10 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
       console.log(`  Scene Similarity: ${sceneSimilarity.toFixed(3)} (pHash)`);
       console.log(`  Color Similarity: ${colorSimilarity.toFixed(3)}`);
       console.log(`  Spatial Similarity: ${spatialSimilarity.toFixed(3)}`);
-      console.log(`  Combined Score: ${combinedSceneScore.toFixed(3)} (threshold: 0.50)`);
+      console.log(`  Combined Score: ${combinedSceneScore.toFixed(3)} (threshold: 0.60)`);
       
-      // DIAGNOSTIC: Lowered threshold to 0.50 to see more candidates
-      if (combinedSceneScore < 0.50) {
+      // Hybrid approach: Stricter threshold to reduce false positives
+      if (combinedSceneScore < 0.60) {
         console.log(`  ❌ REJECTED: Below threshold`);
         pairsRejectedByThreshold++;
         continue;
@@ -282,7 +291,7 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
   
   console.log(`\n📈 === PRE-AI FILTERING SUMMARY ===`);
   console.log(`  Total pairs evaluated: ${totalPairsEvaluated}`);
-  console.log(`  Pairs passing threshold (≥0.50): ${pairsPassingThreshold}`);
+  console.log(`  Pairs passing threshold (≥0.60): ${pairsPassingThreshold}`);
   console.log(`  Pairs rejected by threshold: ${pairsRejectedByThreshold}`);
   console.log(`  Candidates for AI verification: ${candidates.length}`);
   
@@ -296,11 +305,11 @@ export async function scorePairs(images: UploadedImage[]): Promise<PairCandidate
   }
   
   console.log(`\n🤖 === AI VERIFICATION PHASE ===`);
-  console.log(`  Sending top ${Math.min(6, sortedCandidates.length)} candidates to AI for verification`);
+  console.log(`  Sending top ${Math.min(12, sortedCandidates.length)} candidates to AI for verification`);
   
-  // MANDATORY AI verification for ALL top candidates (not just medium confidence)
+  // MANDATORY AI verification for top 10-12 candidates (hybrid approach)
   const verifiedCandidates = await Promise.all(
-    sortedCandidates.slice(0, 6).map(async (candidate, idx) => {
+    sortedCandidates.slice(0, 12).map(async (candidate, idx) => {
       // Verify ALL top 6 candidates regardless of confidence tier
       const beforeImg = images.find(img => img.id === candidate.beforeId);
       const afterImg = images.find(img => img.id === candidate.afterId);
