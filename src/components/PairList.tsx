@@ -1,22 +1,39 @@
 import { useEffect, useState } from 'react';
-import { Info, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Info, CheckCircle2, AlertTriangle, ChevronDown } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { scorePairs } from '@/lib/pairScoring';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
 import { Alert, AlertDescription } from './ui/alert';
-import { Badge } from './ui/badge';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from './ui/collapsible';
 
 export const PairList = () => {
   const { images, candidates, setCandidates, selectedPair, setSelectedPair } = useAppStore();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [expandedPairs, setExpandedPairs] = useState<Set<string>>(new Set());
+
+  const toggleExpanded = (pairId: string) => {
+    setExpandedPairs(prev => {
+      const next = new Set(prev);
+      if (next.has(pairId)) {
+        next.delete(pairId);
+      } else {
+        next.add(pairId);
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     const analyzePairs = async () => {
@@ -97,82 +114,93 @@ export const PairList = () => {
 
             const isSelected = selectedPair?.beforeId === pair.beforeId && 
                               selectedPair?.afterId === pair.afterId;
+            const pairId = `${pair.beforeId}-${pair.afterId}`;
+            const isExpanded = expandedPairs.has(pairId);
 
             return (
-              <button
-                key={`${pair.beforeId}-${pair.afterId}`}
-                onClick={() => setSelectedPair(pair)}
+              <div
+                key={pairId}
                 className={`
-                  w-full p-4 rounded-xl border-2 transition-all text-left
+                  w-full p-4 rounded-xl border-2 transition-all
                   ${isSelected 
                     ? 'border-primary bg-primary/5 shadow-md' 
                     : 'border-border hover:border-primary/50 hover:shadow-sm'
                   }
                 `}
               >
-                <div className="flex items-start gap-4">
-                   {/* Thumbnails */}
-                  <div className="flex gap-2 flex-shrink-0">
-                    <div className="relative">
-                      <img
-                        src={beforeImg.objectUrl}
-                        alt="Before"
-                        className="w-20 h-20 object-cover rounded-lg"
-                      />
-                      <span className="absolute bottom-1 left-1 px-2 py-0.5 bg-black/70 text-white text-xs rounded">
-                        Before
-                      </span>
+                <button
+                  onClick={() => setSelectedPair(pair)}
+                  className="w-full text-left"
+                >
+                  <div className="flex items-start gap-4">
+                     {/* Thumbnails */}
+                    <div className="flex gap-2 flex-shrink-0">
+                      <div className="relative">
+                        <img
+                          src={beforeImg.objectUrl}
+                          alt="Before"
+                          className="w-20 h-20 object-cover rounded-lg"
+                        />
+                        <span className="absolute bottom-1 left-1 px-2 py-0.5 bg-black/70 text-white text-xs rounded">
+                          Before
+                        </span>
+                      </div>
+                      <div className="relative">
+                        <img
+                          src={afterImg.objectUrl}
+                          alt="After"
+                          className="w-20 h-20 object-cover rounded-lg"
+                        />
+                        <span className="absolute bottom-1 left-1 px-2 py-0.5 bg-black/70 text-white text-xs rounded">
+                          After
+                        </span>
+                      </div>
                     </div>
-                    <div className="relative">
-                      <img
-                        src={afterImg.objectUrl}
-                        alt="After"
-                        className="w-20 h-20 object-cover rounded-lg"
-                      />
-                      <span className="absolute bottom-1 left-1 px-2 py-0.5 bg-black/70 text-white text-xs rounded">
-                        After
-                      </span>
-                    </div>
-                  </div>
 
-                  {/* Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2 flex-wrap">
+                    {/* Details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium">
                           Pair {index + 1}
                         </span>
-                        {pair.confidenceTier === 'high' && (
-                          <Badge variant="default" className="bg-green-600">
-                            High
-                          </Badge>
-                        )}
-                        {pair.confidenceTier === 'medium' && (
-                          <Badge variant="secondary">
-                            Medium
-                          </Badge>
+                        {isSelected && (
+                          <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
                         )}
                       </div>
-                      {isSelected && (
-                        <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                      )}
-                    </div>
 
-                    {/* Confidence bar */}
-                    <div className="mb-2">
-                      <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="text-muted-foreground">Confidence</span>
-                        <span className="font-medium">
-                          {(pair.totalScore * 100).toFixed(0)}%
-                        </span>
+                      {/* Confidence bar */}
+                      <div className="mb-2">
+                        <div className="flex items-center justify-between text-xs mb-1">
+                          <span className="text-muted-foreground">Confidence</span>
+                          <span className="font-medium">
+                            {(pair.totalScore * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        <Progress 
+                          value={pair.totalScore * 100} 
+                          className="h-2"
+                        />
                       </div>
-                      <Progress 
-                        value={pair.totalScore * 100} 
-                        className="h-2"
+                    </div>
+                  </div>
+                </button>
+
+                {/* Collapsible Details */}
+                <Collapsible open={isExpanded} onOpenChange={() => toggleExpanded(pairId)}>
+                  <CollapsibleTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full mt-2 h-8 text-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <span>Show Details</span>
+                      <ChevronDown 
+                        className={`ml-2 h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                       />
-                    </div>
-
-                    {/* Rationale */}
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2 pl-4">
                     <ul className="space-y-1">
                       {pair.rationale.map((reason, i) => (
                         <li key={i} className="text-xs text-muted-foreground flex items-start">
@@ -187,9 +215,9 @@ export const PairList = () => {
                         </li>
                       )}
                     </ul>
-                  </div>
-                </div>
-              </button>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
             );
           })}
         </div>
