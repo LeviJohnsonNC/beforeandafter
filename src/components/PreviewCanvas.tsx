@@ -446,9 +446,20 @@ export const PreviewCanvas = () => {
     toast.info('Creating shareable link...');
 
     try {
+      console.log('Starting share process...');
+      
+      // Convert objectUrls back to File objects by fetching the blobs
+      const beforeBlob = await fetch(beforeImg.objectUrl).then(r => r.blob());
+      const afterBlob = await fetch(afterImg.objectUrl).then(r => r.blob());
+      
+      const beforeFile = new File([beforeBlob], beforeImg.file.name, { type: beforeImg.file.type });
+      const afterFile = new File([afterBlob], afterImg.file.name, { type: afterImg.file.type });
+      
+      console.log('Files recreated:', beforeFile.name, afterFile.name, 'Sizes:', beforeFile.size, afterFile.size);
+
       const comparison = await uploadAndCreateComparison(
-        beforeImg.file,
-        afterImg.file,
+        beforeFile,
+        afterFile,
         branding
       );
 

@@ -9,6 +9,8 @@ export type ShareableComparison = {
 
 export async function uploadImageToStorage(file: File, filename: string): Promise<string | null> {
   try {
+    console.log('Uploading image:', filename, 'Size:', file.size, 'Type:', file.type);
+    
     const { data, error } = await supabase.storage
       .from('comparison-images')
       .upload(filename, file, {
@@ -16,12 +18,18 @@ export async function uploadImageToStorage(file: File, filename: string): Promis
         upsert: false
       });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Storage upload error:', error);
+      throw error;
+    }
+
+    console.log('Upload successful, path:', data.path);
 
     const { data: publicUrlData } = supabase.storage
       .from('comparison-images')
       .getPublicUrl(data.path);
 
+    console.log('Public URL generated:', publicUrlData.publicUrl);
     return publicUrlData.publicUrl;
   } catch (error) {
     console.error('Error uploading image:', error);
